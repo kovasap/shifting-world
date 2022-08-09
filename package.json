@@ -2,7 +2,8 @@
   "dependencies": {
     "highlight.js": "11.5.1",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react-dom": "^18.1.0",
+    "yarn": "^1.22.19"
   },
   "devDependencies": {
     "bootstrap": "^5.1.3",

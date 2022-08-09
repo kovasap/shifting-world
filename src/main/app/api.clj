@@ -1,5 +1,6 @@
 (ns app.api
   (:require [app.config :as config]
+            [app.file-parsing :refer [parse-files]]
             [expound.alpha :as expound]
             [mount.core :as mount :refer [defstate]]
             [muuntaja.core :as m]
@@ -20,10 +21,6 @@
             [taoensso.timbre :as log])
   (:gen-class))
 
-(defn- wizard
-  "Route to ping the API. Used in our monitoring system."
-  [_]
-  (ok {:wizard "🧙‍♂️"}))
 
 (defn- reveal-information [request]
   (ok {:headers (:headers request)
@@ -34,9 +31,10 @@
     ["" {:name :api/debug
          :get {:handler reveal-information}
          :post {:handler reveal-information}}]]
-   ["/wizard" {:get wizard}]])
-
-
+   ["/wizard"
+    {:get (fn [_] (ok {:wizard "🧙"}))}]
+   ["/files"
+    {:get (fn [_] (ok {:files (parse-files "./data")}))}]])
 
 
 
