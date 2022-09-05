@@ -1,0 +1,88 @@
+(ns app.interface.data-grid
+  (:require
+    [reagent.core :as r]
+    ["react-data-grid" :default DataGrid]
+    ["csv-stringify/lib/sync" :rename {stringify stringify-csv}]
+    [clojure.string :refer [split]]))
+
+; CURRENTLY NOT WORKING UNTIL I DEPLOY THIS WORKAROUND
+; https://github.com/thheller/shadow-cljs/issues/981
+
+; --------------------- CSV Downloading ----------------------------------
+
+(defn maps-to-csv [maps]
+  (stringify-csv
+    (clj->js maps)
+    (clj->js {:header true})))
+
+(defn download-as-csv [maps export-name]
+  (let [data-blob (js/Blob. #js [(maps-to-csv maps)]
+                            #js {:type "text/csv;charset=utf-8;"})
+        link (.createElement js/document "a")]
+    (set! (.-href link) (.createObjectURL js/URL data-blob))
+    (.setAttribute link "download" export-name)
+    (.appendChild (.-body js/document) link)
+    (.click link)
+    (.removeChild (.-body js/document) link)))
+
+; --------------------- Data Grid ----------------------------------
+
+(def px-per-character 13)
+(defn get-rough-px-width
+  "Gives a rough estimate for the pixel width of a string."
+  [string]
+  (* px-per-character (count string)))
+
+(defn make-datagrid-column
+  "Generates a react-data-grid column 
+  https://github.com/adazzle/react-data-grid/blob/929911c506919e96bd12e48ea5de68ec9511ca10/src/types.ts#L7
+  
+  '--' substrings in the input key are converted to newlines."
+  [k]
+  (let [lines (split (name k) #"\-\-")]
+    {:key k
+     :name (r/as-element
+             (into [] (concat
+                        [:div {:style {:line-height "20px"}}]
+                        (interleave lines (repeat [:br])))))
+     :sortable true
+     :width (apply max (map get-rough-px-width lines))})) 
+
+(defn maps-to-datagrid
+  [maps & {:keys [custom-make-datagrid-column]
+           :or {custom-make-datagrid-column (fn [_] {})}}]
+  (let [sorted-rows (r/atom maps)
+        sort-columns (r/atom [{:columnKey "input" :direction "ASC"}])]
+    [:div
+      [:> DataGrid
+       {:columns (clj->js (map #(merge (make-datagrid-column %)
+                                       (custom-make-datagrid-column %))
+                               (keys (first maps))))
+        ; This in combination with [role=columndheader] in public/css/site.css
+        ; allows for multiline column headers.
+        :headerRowHeight 60
+        :defaultColumnOptions #js {:sortable true
+                                   :resizable true}
+        ; See
+        ; https://github.com/adazzle/react-data-grid/blob/b7ad586498ab8a6ed3235ccfd93d3d490b24f4cc/website/demos/CommonFeatures.tsx#L330
+        ; for how to make column sorting work. See also
+        ; https://github.com/reagent-project/reagent/issues/545
+        :sortColumns (clj->js @sort-columns)
+        :onSortColumnsChange
+        (fn [newSortColumns]
+          (let [{columnKey :columnKey
+                 direction :direction} (first (js->clj newSortColumns
+                                                       :keywordize-keys true))]
+            (swap! sorted-rows
+                   #(sort (fn [m1 m2]
+                            (let [v1 (get columnKey m1)
+                                  v2 (get columnKey m2)]
+                              (if (= direction "ASC")
+                                (< v1 v2)
+                                (> v1 v2))))
+                          %))))
+        :rows (clj->js @sorted-rows)}]
+      [:button {:on-click #(download-as-csv maps "data.csv")}
+       "Download as CSV"]]))
+
+(maps-to-datagrid [{:test "v1" :test2 "v2"}])

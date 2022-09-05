@@ -2,6 +2,7 @@
   (:require ["react-dom/client" :refer [createRoot]]
             [ajax.core :as ajax]
             [app.config :as config]
+            [app.interface.data-table :as dt]
             [day8.re-frame.http-fx]
             [goog.dom :as gdom]
             [re-frame.core :as rf]
@@ -15,6 +16,7 @@
     [:div.container
      [:h1 "Welcome"]
      [:p "My first page!"]
+     (dt/maps->data-table dt/sample-data)
      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:wizard/get])}
       "Query Wizard from Backend"]
      (when wizard [:p.display-1.pt-3 wizard])]))
