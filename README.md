@@ -5,6 +5,7 @@
 First, install the dependencies with npm:
 
     yarn
+    npm i
 
 Then, you can start the frontend service with:
 
@@ -17,6 +18,13 @@ Start the backend API with this alias:
     clj -M:api
 
 Find the backend server's documentation at: http://localhost:3000
+
+Start the image server with:
+
+npx simple-image-server ./data
+
+TODO find a way to run this with `yarn` so we aren't using `npm` and `yarn`.
+
 
 ## Using Calva
 

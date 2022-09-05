@@ -1,5 +1,7 @@
 (ns app.interface.data-table
-  (:require [reagent-data-table.core :as rdt]))
+  (:require [clojure.string :refer [capitalize]]
+            [reagent-data-table.core :as rdt]))
+            
 
 
 (def sample-data
@@ -12,25 +14,29 @@
 
 (defn maps->data-table
   [maps]
+  (prn maps)
   [rdt/data-table
    {:table-id              "snazzy-table"
     :sf-input-id           "search-field"
-    :headers               [[:id "ID"] [:name "Name"] [:age "Age"]]
+    ; :headers               [[:id "ID"] [:name "Name"] [:age "Age"]]
+    :headers               (for [k (keys (first maps))]
+                             [k (capitalize (name k))])
     :rows                  maps
     :td-render-fn
     (fn [row col-id]
       (cond
-        (and (= :name col-id)
-             (even? (:id row))) [:td [:a {:href (str "http://example.com/pople/"
-                                                     (:name row))}
-                                      (get row col-id)]]
-        :else (if (empty? (str (get row col-id)))
-                [:td {:style {:background :gold :display :block}} "~~unknowable~~"]
-                (get row col-id))))
-    :filterable-columns    [:age :name]
-    :filter-label          "Search by age or name:"
-    :filter-string         "a"
+        (= :name col-id)
+        [:td [:a {:href (str "http://127.0.0.1:8000/?currentDir="
+                             (:id row))}
+              (get row col-id)]]
+        :else
+        (if (empty? (str (get row col-id)))
+          [:td {:style {:background :gold :display :block}} "~~unknowable~~"]
+          (get row col-id))))
+    :filterable-columns    (keys (first maps))
+    :filter-label          "Search:"
+    :filter-string         ""
     ; :child-row-opts        (-> @app :table-data :child-rows)
-    :sortable-columns      [:id :name :age]
+    :sortable-columns      (keys (first maps))
     :sort-columns          [[:age true]]
     :table-state-change-fn #(.log js/console %)}])

@@ -18,6 +18,8 @@
         ring/ring {:mvn/version "1.9.5"}
         ring/ring-defaults {:mvn/version "0.3.3"}
         reagent-data-table/reagent-data-table {:mvn/version "2.2.2"}
+        ; See https://github.com/weavejester/hashp/pull/1
+        com.gfredericks/user.clj {:mvn/version "0.1.0"}
         thheller/shadow-cljs {:mvn/version "2.19.2"}}
 
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
@@ -39,4 +41,10 @@
                         "watch" ":app"]
             :extra-deps {binaryage/devtools {:mvn/version "1.0.6"}}}
 
+           :repl/conjure
+           {:extra-deps {nrepl/nrepl       {:mvn/version "0.9.0"}
+                         cider/cider-nrepl {:mvn/version "0.28.4"}}
+            :main-opts  ["-m" "nrepl.cmdline"
+                         "--middleware" "[cider.nrepl/cider-middleware]"
+                         "--interactive"]}
            :api {:main-opts ["-m" "app.api"]}}}

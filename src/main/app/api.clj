@@ -1,6 +1,6 @@
 (ns app.api
   (:require [app.config :as config]
-            [app.file-parsing :refer [parse-files]]
+            [app.file-parsing :refer [parse-experiments]]
             [expound.alpha :as expound]
             [mount.core :as mount :refer [defstate]]
             [muuntaja.core :as m]
@@ -33,10 +33,8 @@
          :post {:handler reveal-information}}]]
    ["/wizard"
     {:get (fn [_] (ok {:wizard "🧙"}))}]
-   ["/files"
-    {:get (fn [_] (ok {:files (parse-files "./data")}))}]])
-
-
+   ["/experiments"
+    {:get (fn [_] (ok {:experiments (parse-experiments "./data")}))}]])
 
 
 ;; ----------------------------------------------------------------------------
