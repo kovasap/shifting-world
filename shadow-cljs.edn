@@ -7,7 +7,7 @@
                 :output-dir "resources/public/js/compiled"
                 :asset-path "/js/compiled"
                 :dev {:compiler-options {:closure-defines {re-frame.trace.trace-enabled? true}}}
-                :devtools {:preloads [devtools.preload]}}
+                :devtools {:preloads [devtools.preload hashp.core]}}
           :test {:target :node-test
                  :output-dir "target/test/compiled/"
                  :output-to "target/test/compiled/test.js"

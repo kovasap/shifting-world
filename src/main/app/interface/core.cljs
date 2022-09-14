@@ -2,6 +2,7 @@
   (:require ["react-dom/client" :refer [createRoot]]
             [ajax.core :as ajax]
             [app.config :as config]
+            [app.interface.csv :refer [download-as-csv]]
             [app.interface.data-table :as dt]
             [day8.re-frame.http-fx]
             [goog.dom :as gdom]
@@ -20,10 +21,14 @@
      ; (dt/maps->data-table dt/sample-data)
      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:experiments/get])}
       "Query Experiments from Backend"]
-     (when experiments (dt/maps->data-table experiments))
-     [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:wizard/get])}
-      "Query Wizard from Backend"]
-     (when wizard [:p.display-1.pt-3 wizard])]))
+     [:button {:on-click #(download-as-csv
+                            (reduce concat (map :wormlist @dt/selected-rows))
+                            "aggregated_wormlist.csv")}
+      "Download Aggregated Wormlists"]
+     (when experiments (dt/maps->data-table experiments))]))
+     ; [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:wizard/get])}
+     ;  "Query Wizard from Backend")
+     ; (when wizard [:p.display-1.pt-3 wizard])]))
 
 
 ;; -----------------------------------------------------------------------------

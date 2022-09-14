@@ -4,6 +4,7 @@
 
 First, install the dependencies with npm:
 
+    libvips-dev
     yarn
     npm i
 
@@ -21,9 +22,15 @@ Find the backend server's documentation at: http://localhost:3000
 
 Start the image server with:
 
-npx simple-image-server ./data
+    npx simple-image-server ./data
 
 TODO find a way to run this with `yarn` so we aren't using `npm` and `yarn`.
+
+## Wormlist.txt
+
+Each row is a single worm.
+
+x,y,age of death in frames,id of animal,day of death (rounded),minutes alive
 
 
 ## Using Calva
