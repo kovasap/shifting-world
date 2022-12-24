@@ -18,10 +18,6 @@
         ring-middleware-format/ring-middleware-format {:mvn/version "0.7.5"}
         ring/ring {:mvn/version "1.9.5"}
         ring/ring-defaults {:mvn/version "0.3.3"}
-        kovasap/reagent-data-table
-        {:git/sha "bae30383779afa3fc7d27a474c3bde817bb878f8"
-         :git/url "https://github.com/kovasap/reagent-data-table.git"
-         :deps/manifest :deps}
         ; See https://github.com/weavejester/hashp/pull/1
         com.gfredericks/user.clj {:mvn/version "0.1.0"}
         thheller/shadow-cljs {:mvn/version "2.19.2"}}
