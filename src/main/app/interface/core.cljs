@@ -6,124 +6,148 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]
             [reagent.core :as r]
+            [app.interface.utils :refer [get-only]]
             [clojure.string :as st]
+            [app.interface.board :refer [render-board]]
             [taoensso.timbre :as log]))
 
+(def resource-types
+  [:wood :water :sand])
 
-; See resources/public/css/board.css for supporting css.
-; TODO make better when
-; https://github.com/schnaq/cljs-re-frame-full-stack/issues/1 is fixed
-(def tile-hover-state (r/atom {}))
-(defn render-tile
-  [{:keys [land row-idx col-idx structures] :as tile}]
-  (let [placing @(rf/subscribe [:placing])
-        hovered (get-in @tile-hover-state [row-idx col-idx])]
-    [:div.tile {:class         land
-                :style         {:opacity (cond (and placing hovered) 1.0
-                                               placing 0.8
-                                               :else   0.7)}
-                :on-mouse-over #(swap! tile-hover-state (fn [state]
-                                                          (assoc-in state
-                                                            [row-idx col-idx]
-                                                            true)))
-                :on-mouse-out  #(swap! tile-hover-state (fn [state]
-                                                          (assoc-in state
-                                                            [row-idx col-idx]
-                                                            false)))
-                :on-click      #(if placing
-                                  (rf/dispatch [:place/tile tile])
-                                  nil)}
-     (str structures)]))
-(defn render-tiles
-  [tiles]
-  (into [:div.board
-         ; https://www.w3schools.com/css/css_grid.asp
-         {:style {:grid-template-columns (st/join " "
-                                                  (repeat (count (first tiles))
-                                                          "max-content"))}}]
-        (reduce concat
-          (for [column tiles] (for [tile column] (render-tile tile))))))
+(def structures
+  [{:type :settlement :production {}} {:type :bridge :production {}}])
+
+(defn render-player-card
+  [{:keys [player-name resources]}]
+  (let [current-player-name @(rf/subscribe [:current-player-name])]
+    [:div
+     [:h3 player-name (if (= player-name current-player-name) " *" "")]
+     (into [:div]
+           (for [resource resource-types]
+             [:div (str (name resource) ": " (resource resources))]))]))
+  
 
 (defn- main
   "Main view for the application."
   []
   (let [experiments @(rf/subscribe [:experiments])
-        board       @(rf/subscribe [:board])]
+        players     @(rf/subscribe [:players])
+        current-player-name @(rf/subscribe [:current-player-name])]
     [:div.container
-     [:h1 "Welcome"]
-     [:p "My first page!"]
-     [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:board/setup])}
-      "Setup Board"]
+     [:h1 "Welcome to Terraforming Catan!"]
+     [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
+      "Setup Game"]
      [:br]
      [:br]
-     (when board (render-tiles board))
-     [:br]
-     [:br]
-     [:button.btn.btn-outline-primary {:on-click #(rf/dispatch
-                                                    [:place/start :settlement])}
-      "Place Settlement"]]))
+     [:div {:style {:display  "grid"
+                    :grid-template-columns "auto auto auto"
+                    :grid-gap "15px"}}
+      (into [:div] (for [player players] (render-player-card player)))
+      [:div
+       (render-board)
+       [:br]
+       (for [n (map :type structures)]
+         [:button.btn.btn-outline-primary
+          {:key      (name n) ; Required by react (otherwise we get a
+                              ; warning).
+           :on-click #(rf/dispatch [:place/start n current-player-name])}
+          (str "Place " (name n))])
+       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
+        "End Turn"]]
+      [:div "TODO add diff of game state to show what just happened"]]]))
      ; (when wizard [:p.display-1.pt-3 wizard])]))
 
 
 
 ;; ----------------------------------------------------------------------------
-;; Board Setup
+;; Setup
 
-(def board-str
-  "F F F F F F F F
-   F F F W F F F F
-   F F F W W F F F
-   F F F F W F F F
-   S S S S S F F F")
-
-(defn parse-board-str
-  [board-str]
-  (into []
-        (map-indexed (fn [row-idx line]
-                       (into []
-                             (map-indexed (fn [col-idx tile-letter]
-                                            {:structures []
-                                             :row-idx    row-idx
-                                             :col-idx    col-idx
-                                             :land       (case tile-letter
-                                                           "F" "forest"
-                                                           "W" "water"
-                                                           "S" "sand"
-                                                           :else "void")})
-                                          (st/split (st/trim line) #" "))))
-                     (st/split-lines board-str))))
+(defn player-data
+  [i player-name]
+  {:player-name player-name
+   :index i
+   :resources   (into {} (for [t resource-types] [t 1]))})
 
 (rf/reg-event-db
-  :board/setup
+  :game/setup
   (fn [db _]
-    (assoc db :board (parse-board-str board-str)
-              :placing false)))
+    (rf/dispatch [:board/setup])
+    (assoc db
+      :players (into [] (map-indexed player-data ["cupid" "zeus" "hades"]))
+      :current-player-name "cupid"
+      :placing false)))
 
 (rf/reg-sub
-  :board
+  :players
   (fn [db _]
-    (:board db)))
+    (:players db)))
 
+(rf/reg-sub
+  :current-player-name
+  (fn [db _]
+    (:current-player-name db)))
+
+(rf/reg-sub
+  :current-player-idx
+  (fn [db _]
+    (:index (get-only @(rf/subscribe [:players])
+                      :player-name
+                      @(rf/subscribe [:current-player-name])))))
+
+(rf/reg-sub
+  :next-player-name
+  (fn [db _]
+    (let [players @(rf/subscribe [:players])
+          cur-idx @(rf/subscribe [:current-player-idx])
+          next-idx (if (= (+ 1 cur-idx) (count players)) 0 (+ 1 cur-idx))]
+      (:player-name (nth players next-idx)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Placing Things
 
 (rf/reg-event-db
   :place/start
-  (fn [db [_ structure]]
-    (assoc db :placing structure)))
+  (fn [db [_ structure placer]]
+    #p (assoc db :placing (get-only structures :type structure)
+                 :placer  placer)))
 
 (rf/reg-event-db
   :place/tile
   (fn [db [_ {:keys [row-idx col-idx]}]]
-    (-> db
-      (update-in [:board row-idx col-idx :structures] #(conj % (:placing db)))
-      (assoc :placing false))))
+    (let [tile (get-in db [:board row-idx col-idx])]
+      (-> db
+          (update-in [:board row-idx col-idx :structures]
+                     #(conj %
+                            (assoc (:placing db)
+                              :owner      (:placer db)
+                              :production (get-in tile [:land :production]))))
+          (assoc :placing false)))))
 
 (rf/reg-sub
   :placing
   (fn [db _]
     (:placing db)))
+
+;; ----------------------------------------------------------------------------
+;; End of Turn
+
+(rf/reg-event-db
+  :end-turn
+  (fn [db [_]]
+    (let [current-player-name @(rf/subscribe [:current-player-name])
+          current-player-idx  @(rf/subscribe [:current-player-idx])
+          owned-structures    (filter #(= (:owner %) current-player-name)
+                                @(rf/subscribe [:structures]))
+          total-production    (if owned-structures
+                                (apply merge-with
+                                  +
+                                  (map :production owned-structures))
+                                (into {} (for [rt resource-types] [rt 0])))]
+      #p (-> db
+             (update-in [:players current-player-idx :resources]
+                        #(merge-with + total-production %))
+             (assoc :current-player-name @(rf/subscribe
+                                            [:next-player-name]))))))
 
 
 ;; -----------------------------------------------------------------------------
