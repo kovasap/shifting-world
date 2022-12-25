@@ -8,19 +8,3 @@
   height: 100px;
   border: 2px solid black;
 }
-
-.forest {
-  background-color: green;
-}
-
-.water {
-  background-color: blue;
-}
-
-.sand {
-  background-color: yellow;
-}
-
-.void {
-  background-color: black;
-}
