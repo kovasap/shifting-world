@@ -78,6 +78,8 @@
           :row-idx          nil
           :col-idx          nil
           :legal-placement? false
+          ; nil if there is no worker
+          :worker-owner     nil
           :land             nil}
          args))
 
@@ -121,7 +123,7 @@
   :board/setup
   (fn [db _]
     ; (assoc db :board (parse-board-str board-str))
-    (assoc db :board (generate-perlin-board 15 15))))
+    (assoc db :board (generate-perlin-board 15 10))))
 
 (rf/reg-sub
   :board
@@ -143,26 +145,29 @@
 ; https://github.com/schnaq/cljs-re-frame-full-stack/issues/1 is fixed
 (def tile-hover-state (r/atom {}))
 (defn render-tile
-  [{:keys [land row-idx col-idx development legal-placement?] :as tile}]
+  [{:keys [land row-idx col-idx development legal-placement? worker-owner] :as tile}]
   (let [hovered (get-in @tile-hover-state [row-idx col-idx])]
-    [:div.tile {:style         (merge
-                                 (:style land)
-                                 {:opacity (cond
-                                             (and legal-placement? hovered) 1.0
-                                             legal-placement? 0.9
-                                             :else 0.7)})
-                :on-mouse-over #(swap! tile-hover-state (fn [state]
-                                                          (assoc-in state
-                                                            [row-idx col-idx]
-                                                            true)))
-                :on-mouse-out  #(swap! tile-hover-state (fn [state]
-                                                          (assoc-in state
-                                                            [row-idx col-idx]
-                                                            false)))
-                :on-click      #(if legal-placement?
-                                  (rf/dispatch [:development/place tile])
-                                  nil)}
-     (if development development nil)]))
+    [:div.tile {:style (merge (:style land)
+                              {:opacity (cond (and legal-placement? hovered) 1.0
+                                              legal-placement? 0.9
+                                              :else 0.7)})
+                :on-mouse-over
+                  #(swap! tile-hover-state
+                     (fn [state] (assoc-in state [row-idx col-idx] true)))
+                :on-mouse-out
+                  #(swap! tile-hover-state
+                     (fn [state] (assoc-in state [row-idx col-idx] false)))
+                :on-click
+                  #(cond
+                     @(rf/subscribe [:placing])
+                     (rf/dispatch [:development/place tile])
+                     development
+                     (rf/dispatch [:development/use development tile])
+                     :else
+                     (rf/dispatch [:message "Can't do anything here"]))}
+     [:div (if development (name (:type development)) nil)]
+     [:div (if worker-owner worker-owner nil)]]))
+
 (defn render-board
   []
   (let [board @(rf/subscribe [:board])]

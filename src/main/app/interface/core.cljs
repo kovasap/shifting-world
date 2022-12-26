@@ -8,7 +8,7 @@
             [reagent.core :as r]
             [app.interface.utils :refer [get-only]]
             [clojure.string :as st]
-            [app.interface.board :refer [render-board]]
+            [app.interface.board :refer [render-board update-tiles]]
             [app.interface.developments :refer [developments update-resources]]
             [taoensso.timbre :as log]))
 
@@ -16,11 +16,12 @@
   [:wood :water :sand])
 
 (defn render-player-card
-  [{:keys [player-name resources]}]
+  [{:keys [player-name resources workers max-workers]}]
   (let [current-player-name @(rf/subscribe [:current-player-name])]
     [:div
      [:h3 player-name (if (= player-name current-player-name) " *" "")]
-     (into [:div]
+     (into [:div
+             [:div (str "Workers: " workers "/" max-workers)]]
            (for [resource resource-types]
              [:div (str (name resource) ": " (resource resources))]))]))
   
@@ -44,20 +45,24 @@
       [:div
        (render-board)
        [:br]
-       (for [development developments
-             :let        [n (name (:type development))]]
-         [:button.btn.btn-outline-primary {:key n ; Required by react
-                                                  ; (otherwise we get a
-                                                  ; warning).
-                                           :on-click
-                                             #(rf/dispatch
-                                                [:development/start-placing
-                                                 (:type development)
-                                                 current-player-name])}
-          [:div "Place " n]
-          [:div "(cost " (:cost development) ")"]])
+       [:div @(rf/subscribe [:message])]
+       [:br]
+       (doall (for [development developments
+                    :let        [n        (name (:type development))
+                                 existing @(rf/subscribe [:developments
+                                                          (:type
+                                                            development)])]]
+                [:button.btn.btn-outline-primary
+                 {:key      n ; Required by react (otherwise we get a warning).
+                  :on-click #(rf/dispatch [:development/start-placing
+                                           (:type development)
+                                           current-player-name])}
+                 [:div "Place " n " " (count existing) "/" (:max development)]
+                 [:div "(cost " (:cost development) ")"]]))
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
-        "End Turn"]]
+        "End Turn"]
+       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
+        "End Round"]]
       [:div "TODO add diff of game state to show what just happened"]]]))
      ; (when wizard [:p.display-1.pt-3 wizard])]))
 
@@ -70,6 +75,8 @@
   [i player-name]
   {:player-name player-name
    :index i
+   :workers 2
+   :max-workers 2
    :resources   (into {} (for [t resource-types] [t 1]))})
 
 (rf/reg-event-db
@@ -77,9 +84,20 @@
   (fn [db _]
     (rf/dispatch [:board/setup])
     (assoc db
+      :message ""
       :players (into [] (map-indexed player-data ["cupid" "zeus" "hades"]))
       :current-player-name "cupid"
       :placing false)))
+
+(rf/reg-event-db
+  :message
+  (fn [db [_ message]]
+    (assoc db :message message)))
+
+(rf/reg-sub
+  :message
+  (fn [db _]
+    (:message db)))
 
 (rf/reg-sub
   :players
@@ -122,10 +140,19 @@
                                     +
                                     (map :production owned-structures))
                                   (into {} (for [rt resource-types] [rt 0])))])
-    (-> db
-        ; (update-resources current-player-idx total-production)
-        (assoc :current-player-name @(rf/subscribe
-                                       [:next-player-name])))))
+    (let [current-player-idx  @(rf/subscribe [:current-player-idx])]
+      (-> db
+          ; (update-resources current-player-idx total-production)
+          (assoc-in [:players current-player-idx :workers]
+                    (get-in db [:players current-player-idx :max-workers]))
+          (assoc :current-player-name @(rf/subscribe
+                                         [:next-player-name]))))))
+
+
+(rf/reg-event-db
+  :end-round
+  (fn [db [_]]
+    (update db :board update-tiles (fn [tile] (assoc tile :worker-owner nil)))))
 
 
 ;; -----------------------------------------------------------------------------

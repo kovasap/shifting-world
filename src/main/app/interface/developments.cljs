@@ -7,27 +7,6 @@
   (into #{} (for [land lands]
               (:type land))))
 
-(def developments
-  [{:type        :settlement
-    :description "Produces resources"
-    :legal-land-placements all-land-types
-    :cost        {:wood -1}
-    :tax         {:food -1}
-    :production  {}}
-   {:type        :library
-    :description "Draw 3 cards, discard 2"
-    :legal-land-placements #{"mountain"}
-    :cost        {:wood -1}
-    :tax         {:sand -1}
-    :production  {}}
-   {:type        :terraformer
-    :description "Change the land type of a tile"
-    :legal-land-placements #{"sand"}
-    :cost        {:wood -1}
-    :tax         {:stone -1}
-    :production  {}}])
-
-
 (defn update-resources
   [db player-idx resource-delta]
   (let [updated (update-in db
@@ -39,18 +18,54 @@
       nil
       updated)))
   
-  
+(def developments
+  [{:type        :settlement
+    :description "Produces resources"
+    :legal-land-placements all-land-types
+    :use (fn [db instance]
+           (update-resources db @(rf/subscribe [:current-player-idx]) 
+                             (:production instance)))
+    :max 6
+    :cost        {:wood -1}
+    :tax         {:food -1}
+    :production  {}}
+   {:type        :library
+    :description "Draw 3 cards, discard 2"
+    :legal-land-placements #{"mountain"}
+    :use (fn [db instance]
+            (assoc db :message "No cards in game yet"))
+    :max 2
+    :cost        {:wood -1}
+    :tax         {:sand -1}
+    :production  {}}
+   {:type        :terraformer
+    :description "Change the land type of a tile"
+    :legal-land-placements #{"sand"}
+    :use (fn [db instance]
+            (assoc db :message "Terraformer not implemented yet"))
+    :max 3
+    :cost        {:wood -1}
+    :tax         {:stone -1}
+    :production  {}}])
+
+ 
 (rf/reg-event-db
   :development/use
-  (fn [db [_ development]]
+  (fn [db [_ development {:keys [row-idx col-idx worker-owner]}]]
     (let [current-player-idx  @(rf/subscribe [:current-player-idx])
           current-player-name @(rf/subscribe [:current-player-name])]
-      (-> db
-          ; Pay tax if not your development
-          (update-resources current-player-idx
-                            (if (= current-player-name (:owner development))
-                              {}
-                              (:tax development)))))))
+      (if worker-owner
+        (assoc db :message (str "Worker from " worker-owner
+                                " already here!"))
+        (-> db
+            (assoc-in [:board row-idx col-idx :worker-owner]
+                      (:current-player-name db))
+            ; Pay tax if not your development
+            (update-resources current-player-idx
+                              (if (= current-player-name (:owner development))
+                                {}
+                                (:tax development)))
+            ((:use development) development))))))
       
 
 (rf/reg-event-db
@@ -71,19 +86,33 @@
 
 (rf/reg-event-db
   :development/place
-  (fn [db [_ {:keys [row-idx col-idx]}]]
+  (fn [db [_ {:keys [row-idx col-idx legal-placement?]}]]
     (let [tile         (get-in db [:board row-idx col-idx])
           current-player-idx @(rf/subscribe [:current-player-idx])
+          existing-num (count @(rf/subscribe [:developments
+                                              (:type (:placing db))]))
           cost-paid-db (update-resources db
                                          current-player-idx
                                          (:cost (:placing db)))]
-      (if (nil? cost-paid-db)
-        db
+      (cond
+        (not legal-placement?)
+        (assoc db :message "Invalid location!")
+        (>= existing-num (:max (:placing db)))
+        (assoc db :message "Max number already placed!")
+        (nil? cost-paid-db)
+        (assoc db :message "Cannot pay the cost!")
+        (= 0 (get-in db [:players current-player-idx :workers]))
+        (assoc db :message "No more workers!")
+        :else
         (-> cost-paid-db
             (assoc-in [:board row-idx col-idx :development]
                       (assoc (:placing db)
+                        :worker-owner (:placer db)
                         :owner      (:placer db)
                         :production (get-in tile [:land :production])))
+            (assoc-in [:board row-idx col-idx :worker-owner]
+                      (:current-player-name db))
+            (update-in [:players current-player-idx :workers] dec)
             (assoc :placing false))))))
 
 (rf/reg-sub
@@ -92,3 +121,10 @@
     (:placing db)))
 
 
+(rf/reg-sub
+  :developments
+  (fn [db [_ development-type]]
+    (filter #(= (:type %) development-type)
+      (reduce concat
+        (for [column (:board db)]
+          (for [tile column] (:development tile)))))))
