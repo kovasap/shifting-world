@@ -1,10 +1,13 @@
+/* try hex grid like
+ * https://css-tricks.com/hexagons-and-beyond-flexible-responsive-grid-patterns-sans-media-queries/
+ * */
 .board {
   display: grid;
-  grid-gap: 5px;
+  grid-gap: 3px;
 }
 
 .tile {
-  width: 100px;
-  height: 100px;
+  width: 60px;
+  height: 60px;
   border: 2px solid black;
 }

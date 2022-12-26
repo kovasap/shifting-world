@@ -1,4 +1,14 @@
-# Microscope: A Wormbot Data Explorer
+# Terraforming Catan!
+
+## Design
+
+A worker placement game where workers are all placed on a common game board.
+Workers placed on empty tiles can develop them.
+In future turns workers placed on developments can take the actions that
+development allows.
+
+Whenever an opponent uses a development that you built, they need to pay you a
+tax (in resources).
 
 ## Setup
 
@@ -9,10 +19,6 @@ First, install dependencies:
     brew install clojure/tools/clojure
 
     yarn
-
-    # Image server dependency
-    sudo apt install libvips-dev
-    npm i
 
 Then, start up all the servers with:
 
@@ -31,17 +37,3 @@ Start the backend API with this alias:
     clj -M:api
 
 Find the backend server's documentation at: http://localhost:3000
-
-Start the image server with:
-
-    npx simple-image-server ./data
-
-TODO find a way to run this with `yarn` so we aren't using `npm` and `yarn`.
-
-## Notes
-
-### Wormlist.txt
-
-Each row is a single worm.
-
-x,y,age of death in frames,id of animal,day of death (rounded),minutes alive

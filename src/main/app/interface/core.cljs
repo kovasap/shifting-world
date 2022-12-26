@@ -9,13 +9,11 @@
             [app.interface.utils :refer [get-only]]
             [clojure.string :as st]
             [app.interface.board :refer [render-board]]
+            [app.interface.developments :refer [developments update-resources]]
             [taoensso.timbre :as log]))
 
 (def resource-types
   [:wood :water :sand])
-
-(def structures
-  [{:type :settlement :production {}} {:type :bridge :production {}}])
 
 (defn render-player-card
   [{:keys [player-name resources]}]
@@ -46,12 +44,18 @@
       [:div
        (render-board)
        [:br]
-       (for [n (map :type structures)]
-         [:button.btn.btn-outline-primary
-          {:key      (name n) ; Required by react (otherwise we get a
-                              ; warning).
-           :on-click #(rf/dispatch [:place/start n current-player-name])}
-          (str "Place " (name n))])
+       (for [development developments
+             :let        [n (name (:type development))]]
+         [:button.btn.btn-outline-primary {:key n ; Required by react
+                                                  ; (otherwise we get a
+                                                  ; warning).
+                                           :on-click
+                                             #(rf/dispatch
+                                                [:development/start-placing
+                                                 (:type development)
+                                                 current-player-name])}
+          [:div "Place " n]
+          [:div "(cost " (:cost development) ")"]])
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
         "End Turn"]]
       [:div "TODO add diff of game state to show what just happened"]]]))
@@ -103,51 +107,25 @@
       (:player-name (nth players next-idx)))))
 
 ;; ----------------------------------------------------------------------------
-;; Placing Things
-
-(rf/reg-event-db
-  :place/start
-  (fn [db [_ structure placer]]
-    #p (assoc db :placing (get-only structures :type structure)
-                 :placer  placer)))
-
-(rf/reg-event-db
-  :place/tile
-  (fn [db [_ {:keys [row-idx col-idx]}]]
-    (let [tile (get-in db [:board row-idx col-idx])]
-      (-> db
-          (update-in [:board row-idx col-idx :structures]
-                     #(conj %
-                            (assoc (:placing db)
-                              :owner      (:placer db)
-                              :production (get-in tile [:land :production]))))
-          (assoc :placing false)))))
-
-(rf/reg-sub
-  :placing
-  (fn [db _]
-    (:placing db)))
-
-;; ----------------------------------------------------------------------------
 ;; End of Turn
 
 (rf/reg-event-db
   :end-turn
   (fn [db [_]]
-    (let [current-player-name @(rf/subscribe [:current-player-name])
-          current-player-idx  @(rf/subscribe [:current-player-idx])
-          owned-structures    (filter #(= (:owner %) current-player-name)
-                                @(rf/subscribe [:structures]))
-          total-production    (if owned-structures
-                                (apply merge-with
-                                  +
-                                  (map :production owned-structures))
-                                (into {} (for [rt resource-types] [rt 0])))]
-      #p (-> db
-             (update-in [:players current-player-idx :resources]
-                        #(merge-with + total-production %))
-             (assoc :current-player-name @(rf/subscribe
-                                            [:next-player-name]))))))
+    ; This adds the production of all settlements to the player's bank.
+    #_(let [current-player-name @(rf/subscribe [:current-player-name])
+            owned-structures    (filter #(= (:owner %) current-player-name)
+                                  @(rf/subscribe [:developments]))
+            current-player-idx  @(rf/subscribe [:current-player-idx])
+            total-production    (if owned-structures
+                                  (apply merge-with
+                                    +
+                                    (map :production owned-structures))
+                                  (into {} (for [rt resource-types] [rt 0])))])
+    (-> db
+        ; (update-resources current-player-idx total-production)
+        (assoc :current-player-name @(rf/subscribe
+                                       [:next-player-name])))))
 
 
 ;; -----------------------------------------------------------------------------
@@ -170,9 +148,13 @@
    (assoc db :experiments (:experiments response))))
 
 (rf/reg-event-fx
- :experiments.get/error
- (fn [_ [_ error]]
-   {:fx [[:log/error (str "Could not query the experiments. Did you forget to start the api? " error)]]}))
+  :experiments.get/error
+  (fn [_ [_ error]]
+    {:fx
+       [[:log/error
+         (str
+           "Could not query the experiments. Did you forget to start the api? "
+           error)]]}))
 
 (rf/reg-sub
  :experiments
