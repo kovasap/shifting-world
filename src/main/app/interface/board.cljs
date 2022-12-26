@@ -122,8 +122,8 @@
 (rf/reg-event-db
   :board/setup
   (fn [db _]
-    ; (assoc db :board (parse-board-str board-str))
-    (assoc db :board (generate-perlin-board 15 10))))
+    (assoc db :board (parse-board-str board-str))))
+    ; (assoc db :board (generate-perlin-board 15 10))))
 
 (rf/reg-sub
   :board
@@ -145,36 +145,58 @@
 ; https://github.com/schnaq/cljs-re-frame-full-stack/issues/1 is fixed
 (def tile-hover-state (r/atom {}))
 (defn render-tile
-  [{:keys [land row-idx col-idx development legal-placement? worker-owner] :as tile}]
+  [{:keys [land row-idx col-idx development legal-placement? worker-owner]
+    :as   tile}]
   (let [hovered (get-in @tile-hover-state [row-idx col-idx])]
-    [:div.tile {:style (merge (:style land)
-                              {:opacity (cond (and legal-placement? hovered) 1.0
-                                              legal-placement? 0.9
-                                              :else 0.7)})
-                :on-mouse-over
-                  #(swap! tile-hover-state
-                     (fn [state] (assoc-in state [row-idx col-idx] true)))
-                :on-mouse-out
-                  #(swap! tile-hover-state
-                     (fn [state] (assoc-in state [row-idx col-idx] false)))
-                :on-click
-                  #(cond
-                     @(rf/subscribe [:placing])
-                     (rf/dispatch [:development/place tile])
-                     development
-                     (rf/dispatch [:development/use development tile])
-                     :else
-                     (rf/dispatch [:message "Can't do anything here"]))}
-     [:div (if development (name (:type development)) nil)]
+    [:div
+     {:style         {:width "60px"
+                      :height "60px"
+                      :position "relative"
+                      :font-size "10px"
+                      :border "2px solid black"}
+      :on-mouse-over #(swap! tile-hover-state (fn [state]
+                                                (assoc-in state
+                                                  [row-idx col-idx]
+                                                  true)))
+      :on-mouse-out  #(swap! tile-hover-state (fn [state]
+                                                (assoc-in state
+                                                  [row-idx col-idx]
+                                                  false)))
+      :on-click      #(cond @(rf/subscribe [:placing]) (rf/dispatch
+                                                         [:development/place
+                                                          tile])
+                            development (rf/dispatch [:development/use
+                                                      development
+                                                      tile])
+                            :else (rf/dispatch [:message
+                                                "Can't do anything here"]))}
+     [:div.background {:style 
+                       (merge (:style land)
+                         {:width "100%"
+                          :height "100%"
+                          :z-index -1
+                          :position "absolute"
+                          :opacity (cond (and legal-placement? hovered) 1.0
+                                         legal-placement? 0.9
+                                         :else 0.7)})}]
+     [:div
+      (if development
+        (str (:owner development) "'s " (name (:type development)))
+        nil)]
      [:div (if worker-owner worker-owner nil)]]))
 
+
+; TODO try hex grid like
+; https://css-tricks.com/hexagons-and-beyond-flexible-responsive-grid-patterns-sans-media-queries/
 (defn render-board
   []
   (let [board @(rf/subscribe [:board])]
     (into
-      [:div.board
+      [:div
        ; https://www.w3schools.com/css/css_grid.asp
-       {:style {:grid-template-columns (st/join " "
+       {:style {:display  "grid"
+                :grid-gap "3px"
+                :grid-template-columns (st/join " "
                                                 (repeat (count (first board))
                                                         "max-content"))}}]
       (reduce concat

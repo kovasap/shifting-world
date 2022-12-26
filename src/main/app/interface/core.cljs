@@ -31,6 +31,7 @@
   []
   (let [experiments @(rf/subscribe [:experiments])
         players     @(rf/subscribe [:players])
+        placing     @(rf/subscribe [:placing])
         current-player-name @(rf/subscribe [:current-player-name])]
     [:div.container
      [:h1 "Welcome to Terraforming Catan!"]
@@ -47,18 +48,25 @@
        [:br]
        [:div @(rf/subscribe [:message])]
        [:br]
-       (doall (for [development developments
-                    :let        [n        (name (:type development))
-                                 existing @(rf/subscribe [:developments
-                                                          (:type
-                                                            development)])]]
-                [:button.btn.btn-outline-primary
-                 {:key      n ; Required by react (otherwise we get a warning).
-                  :on-click #(rf/dispatch [:development/start-placing
-                                           (:type development)
-                                           current-player-name])}
-                 [:div "Place " n " " (count existing) "/" (:max development)]
-                 [:div "(cost " (:cost development) ")"]]))
+       (doall
+         (for [development developments
+               :let        [n        (name (:type development))
+                            existing @(rf/subscribe [:developments
+                                                     (:type development)])
+                            placing-current (= (:type placing)
+                                               (:type development))]]
+           [:button.btn.btn-outline-primary
+            {:key      n ; Required by react (otherwise we get a warning).
+             :style    {:font-weight (if placing-current
+                                       "bold"
+                                       "normal")}
+             :on-click #(if placing-current
+                          (rf/dispatch [:development/stop-placing])
+                          (rf/dispatch [:development/start-placing
+                                        (:type development)
+                                        current-player-name]))}
+            [:div "Place " n " " (count existing) "/" (:max development)]
+            [:div "(cost " (:cost development) ")"]]))
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
         "End Turn"]
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
@@ -86,7 +94,7 @@
     (assoc db
       :message ""
       :players (into [] (map-indexed player-data ["cupid" "zeus" "hades"]))
-      :current-player-name "cupid"
+      :current-player-idx 0
       :placing false)))
 
 (rf/reg-event-db
@@ -106,23 +114,14 @@
 
 (rf/reg-sub
   :current-player-name
-  (fn [db _]
-    (:current-player-name db)))
+  (fn [{:keys [players current-player-idx] :as db} _]
+    (:player-name (nth players current-player-idx))))
 
-(rf/reg-sub
-  :current-player-idx
-  (fn [db _]
-    (:index (get-only @(rf/subscribe [:players])
-                      :player-name
-                      @(rf/subscribe [:current-player-name])))))
-
-(rf/reg-sub
-  :next-player-name
-  (fn [db _]
-    (let [players @(rf/subscribe [:players])
-          cur-idx @(rf/subscribe [:current-player-idx])
-          next-idx (if (= (+ 1 cur-idx) (count players)) 0 (+ 1 cur-idx))]
-      (:player-name (nth players next-idx)))))
+(defn next-player-idx
+  [{:keys [players current-player-idx] :as db}]
+  (if (= (+ 1 current-player-idx) (count players))
+    0
+    (+ 1 current-player-idx)))
 
 ;; ----------------------------------------------------------------------------
 ;; End of Turn
@@ -130,29 +129,22 @@
 (rf/reg-event-db
   :end-turn
   (fn [db [_]]
-    ; This adds the production of all settlements to the player's bank.
-    #_(let [current-player-name @(rf/subscribe [:current-player-name])
-            owned-structures    (filter #(= (:owner %) current-player-name)
-                                  @(rf/subscribe [:developments]))
-            current-player-idx  @(rf/subscribe [:current-player-idx])
-            total-production    (if owned-structures
-                                  (apply merge-with
-                                    +
-                                    (map :production owned-structures))
-                                  (into {} (for [rt resource-types] [rt 0])))])
-    (let [current-player-idx  @(rf/subscribe [:current-player-idx])]
-      (-> db
-          ; (update-resources current-player-idx total-production)
-          (assoc-in [:players current-player-idx :workers]
-                    (get-in db [:players current-player-idx :max-workers]))
-          (assoc :current-player-name @(rf/subscribe
-                                         [:next-player-name]))))))
+    (-> db
+        (assoc :current-player-idx (next-player-idx db)))))
 
 
 (rf/reg-event-db
   :end-round
   (fn [db [_]]
-    (update db :board update-tiles (fn [tile] (assoc tile :worker-owner nil)))))
+    (-> db
+        (update :players
+                (fn [players]
+                  (into []
+                        (for [player players]
+                          (assoc player :workers (:max-workers player))))))
+        (update :board
+                update-tiles
+                (fn [tile] (assoc tile :worker-owner nil))))))
 
 
 ;; -----------------------------------------------------------------------------
@@ -203,6 +195,7 @@
 
 (defn init
   []
+  (rf/dispatch [:game/setup])
   (.render root (r/as-element [main])))
 
 (defn- ^:dev/after-load re-render
