@@ -21,12 +21,13 @@
   [{:type        :settlement
     :description "Produces resources"
     :legal-land-placements all-land-types
-    ; TODO make it so that settlements produce all resources adjacent to them,
-    ; to make things more varied.
     :use         (fn [db instance]
                    (second (update-resources db
                                              (:current-player-idx db)
                                              (:production instance))))
+    ; TODO make it so that settlements produce all resources adjacent to them,
+    ; to make things more varied.  This vector describes what is "adjacent"
+    :controlled-tiles [[1 0] [0 1] [1 0] [-1 0]]
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}
@@ -104,31 +105,34 @@
 (rf/reg-event-db
   :development/place
   (fn [db [_ {:keys [row-idx col-idx legal-placement?]}]]
-    (let [tile         (get-in db [:board row-idx col-idx])
-          existing-num (count @(rf/subscribe [:developments
+    (let [existing-num (count @(rf/subscribe [:developments
                                               (:type (:placing db))]))
-          [cost-payable updated-db]
-          (update-resources db (:current-player-idx db) (:cost (:placing db)))]
-                                         
-      (cond
-        (not legal-placement?)
-        (assoc db :message "Invalid location!")
-        (>= existing-num (:max (:placing db)))
-        (assoc db :message "Max number already placed!")
-        (= 0 (get-in db [:players (:current-player-idx db) :workers]))
-        (assoc db :message "No more workers!")
-        (not cost-payable) updated-db
-        :else
-        (-> updated-db
-            (assoc-in [:board row-idx col-idx :development]
-                      (assoc (:placing db)
-                        :worker-owner (:placer db)
-                        :owner      (:placer db)
-                        :production (get-in tile [:land :production])))
-            (assoc-in [:board row-idx col-idx :worker-owner]
-                      (:current-player-name db))
-            (update-in [:players (:current-player-idx db) :workers] dec)
-            (stop-placing))))))
+          [cost-payable updated-db] (update-resources db
+                                                      (:current-player-idx db)
+                                                      (:cost (:placing db)))]
+      (cond (not legal-placement?)
+            (assoc db :message "Invalid location!")
+            (>= existing-num (:max (:placing db)))
+            (assoc db :message "Max number already placed!")
+            (= 0 (get-in db [:players (:current-player-idx db) :workers]))
+            (assoc db :message "No more workers!")
+            (not cost-payable) updated-db
+            :else
+            (->
+              updated-db
+              (update-in
+                [:board row-idx col-idx]
+                (fn [tile]
+                  (assoc tile
+                    :development  (assoc (:placing db)
+                                    :owner      (:placer db)
+                                    :production (get-in tile
+                                                        [:land :production]))
+                    :controller (get-in db [:players (:current-player-idx db)])
+                    :worker-owner (:current-player-name db))))
+              (update-in [:players (:current-player-idx db) :workers] dec)
+              (stop-placing))))))
+        
 
 (rf/reg-sub
   :placing

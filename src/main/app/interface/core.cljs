@@ -83,6 +83,7 @@
   [i player-name]
   {:player-name player-name
    :index i
+   :color (get ["blue" "red" "purple" "black"] i)
    :workers 2
    :max-workers 2
    :resources   (into {} (for [t resource-types] [t 1]))})

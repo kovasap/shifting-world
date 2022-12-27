@@ -77,6 +77,8 @@
   (merge {:development      nil
           :row-idx          nil
           :col-idx          nil
+          ; player
+          :controller       nil
           :legal-placement? false
           ; nil if there is no worker
           :worker-owner     nil
@@ -145,15 +147,21 @@
 ; https://github.com/schnaq/cljs-re-frame-full-stack/issues/1 is fixed
 (def tile-hover-state (r/atom {}))
 (defn render-tile
-  [{:keys [land row-idx col-idx development legal-placement? worker-owner]
+  [{:keys [land
+           row-idx
+           col-idx
+           development
+           legal-placement?
+           worker-owner
+           controller]
     :as   tile}]
   (let [hovered (get-in @tile-hover-state [row-idx col-idx])]
     [:div
-     {:style         {:width "60px"
-                      :height "60px"
-                      :position "relative"
+     {:style         {:width     "60px"
+                      :height    "60px"
+                      :position  "relative"
                       :font-size "10px"
-                      :border "2px solid black"}
+                      :border    "2px solid black"}
       :on-mouse-over #(swap! tile-hover-state (fn [state]
                                                 (assoc-in state
                                                   [row-idx col-idx]
@@ -170,19 +178,18 @@
                                                       tile])
                             :else (rf/dispatch [:message
                                                 "Can't do anything here"]))}
-     [:div.background {:style 
-                       (merge (:style land)
-                         {:width "100%"
-                          :height "100%"
-                          :z-index -1
-                          :position "absolute"
-                          :opacity (cond (and legal-placement? hovered) 1.0
-                                         legal-placement? 0.9
-                                         :else 0.7)})}]
-     [:div
-      (if development
-        (str (:owner development) "'s " (name (:type development)))
-        nil)]
+     [:div.background
+      {:style (merge (:style land)
+                     {:width    "100%"
+                      :height   "100%"
+                      :z-index  -1
+                      :position "absolute"
+                      :opacity  (cond (and legal-placement? hovered) 1.0
+                                      legal-placement? 0.9
+                                      :else 0.7)})}]
+     [:div {:style {:color (:color controller)}}
+      (if controller (str (:player-name controller) "'s") nil)]
+     [:div (if development (name (:type development)) nil)]
      [:div (if worker-owner worker-owner nil)]]))
 
 
