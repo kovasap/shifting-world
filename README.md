@@ -10,6 +10,18 @@ development allows.
 Whenever an opponent uses a development that you built, they need to pay you a
 tax (in resources).
 
+### Stuff to Add
+
+ - Make it so that some tiles have resources on them that you get when
+   developing them (like terraforming mars).
+ - Make it so that when you build a library a new deck of cards is created for
+   that library specifically.
+   You as the builder get to look at (and reorder?) the top 3 cards (or the
+   whole deck?).
+ - Add a deck of global effects (weather?) from which a new card is flipped each
+   round.
+   Each card has an effect that changes parameters across the whole game.
+
 ## Setup
 
 First, install dependencies:

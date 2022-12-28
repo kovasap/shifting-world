@@ -10,6 +10,7 @@
             [clojure.string :as st]
             [app.interface.board :refer [render-board update-tiles]]
             [app.interface.developments :refer [developments update-resources]]
+            [cljs.pprint]
             [taoensso.timbre :as log]))
 
 (def resource-types
@@ -32,6 +33,7 @@
   (let [experiments @(rf/subscribe [:experiments])
         players     @(rf/subscribe [:players])
         placing     @(rf/subscribe [:placing])
+        db  @(rf/subscribe [:db-no-board])
         current-player-name @(rf/subscribe [:current-player-name])]
     [:div.container
      [:h1 "Welcome to Terraforming Catan!"]
@@ -71,9 +73,14 @@
         "End Turn"]
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
         "End Round"]]
-      [:div "TODO add diff of game state to show what just happened"]]]))
-     ; (when wizard [:p.display-1.pt-3 wizard])]))
+      [:div "TODO add diff of game state to show what just happened\n"
+       [:pre (with-out-str (cljs.pprint/pprint db))]]]]))
 
+
+(rf/reg-sub
+  :db-no-board
+  (fn [db _]
+    (dissoc db :board)))
 
 
 ;; ----------------------------------------------------------------------------
