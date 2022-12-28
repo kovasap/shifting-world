@@ -25,6 +25,8 @@
                    (second (update-resources db
                                              (:current-player-idx db)
                                              (:production instance))))
+    :place       (fn [db instance]
+                   )
     ; TODO make it so that settlements produce all resources adjacent to them,
     ; to make things more varied.  This vector describes what is "adjacent"
     :controlled-tiles [[1 0] [0 1] [1 0] [-1 0]]
