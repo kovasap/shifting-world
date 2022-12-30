@@ -1,6 +1,7 @@
 (ns app.interface.developments
   (:require [re-frame.core :as rf]
-            [app.interface.board :refer [lands update-tiles]]
+            [app.interface.board :refer [update-tiles]]
+            [app.interface.map-generation :refer [lands]]
             [app.interface.utils :refer [get-only]]))
 
 (def all-land-types
@@ -16,17 +17,22 @@
                (get-in updated [:players player-idx :resources])))
       [false (assoc db :message "Cannot pay the cost!")]
       [true updated])))
+
+(defn is-legal-land-placement
+  [tile legal-land-placements]
+  (contains? legal-land-placements (:type (:land tile))))
   
 (def developments
   [{:type        :settlement
     :description "Produces resources"
-    :legal-land-placements all-land-types
+    :is-legal-placement? (fn [db tile]
+                           (and (is-legal-land-placement tile all-land-types)))
     :use         (fn [db instance]
                    (second (update-resources db
                                              (:current-player-idx db)
                                              (:production instance))))
-    :place       (fn [db instance]
-                   )
+    :place       (fn [db instance])
+                   
     ; TODO make it so that settlements produce all resources adjacent to them,
     ; to make things more varied.  This vector describes what is "adjacent"
     :controlled-tiles [[1 0] [0 1] [1 0] [-1 0]]
@@ -36,15 +42,27 @@
     :production  {}}
    {:type        :library
     :description "Draw 3 cards, discard 2"
-    :legal-land-placements #{"mountain"}
+    :is-legal-placement? (fn [db tile]
+                           (and (is-legal-land-placement tile #{"mountain"})))
     :use         (fn [db instance] (assoc db :message "No cards in game yet"))
     :max         2
     :cost        {:wood -1}
     :tax         {:sand -1}
     :production  {}}
+   {:type        :crossroads
+    :description "Use all adjacent tiles that have not been used yet."
+    :is-legal-placement? (fn [db tile]
+                           (and (is-legal-land-placement tile #{"plains"})))
+    :use         (fn [db instance]
+                   (assoc db :message "Terraformer not implemented yet"))
+    :max         3
+    :cost        {:wood -1}
+    :tax         {:stone -1}
+    :production  {}}
    {:type        :terraformer
     :description "Change the land type of a tile"
-    :legal-land-placements #{"sand"}
+    :is-legal-placement? (fn [db tile]
+                           (and (is-legal-land-placement tile #{"sand"})))
     :use         (fn [db instance]
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
@@ -89,18 +107,17 @@
   :development/start-placing
   (fn [db [_ development-type placer]]
     (let [development (get-only developments :type development-type)]
-      (->
-        db
-        (stop-placing)
-        (assoc :board (update-tiles (:board db)
-                                    (fn [tile]
-                                      (assoc tile
-                                        :legal-placement?
-                                          (contains? (:legal-land-placements
-                                                       development)
-                                                     (:type (:land tile)))))))
-        (assoc :placing development
-               :placer  placer)))))
+      (-> db
+          (stop-placing)
+          (assoc :board (update-tiles (:board db)
+                                      (fn [tile]
+                                        (assoc tile
+                                          :legal-placement?
+                                            ((:is-legal-placement? development)
+                                             db
+                                             tile)))))
+          (assoc :placing development
+                 :placer  placer)))))
 
 (rf/reg-event-db :development/stop-placing stop-placing)
 
