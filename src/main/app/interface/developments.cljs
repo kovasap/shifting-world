@@ -1,6 +1,7 @@
 (ns app.interface.developments
   (:require [re-frame.core :as rf]
-            [app.interface.board :refer [update-tiles]]
+            [app.interface.players :refer [get-current-player]]
+            [app.interface.board :refer [update-tiles get-adjacent-tiles]]
             [app.interface.map-generation :refer [lands]]
             [app.interface.utils :refer [get-only]]))
 
@@ -21,29 +22,47 @@
 (defn is-legal-land-placement
   [tile legal-land-placements]
   (contains? legal-land-placements (:type (:land tile))))
+
+(defn adjacent-to-owned-developments?
+  [board tile player]
+  (some #(= (:player-name (:controller %)) (:player-name player))
+        (get-adjacent-tiles board tile)))
+  
   
 (def developments
   [{:type        :settlement
     :description "Produces resources"
     :is-legal-placement? (fn [db tile]
-                           (and (is-legal-land-placement tile all-land-types)))
+                           (and (nil? (:development tile))
+                                (adjacent-to-owned-developments?
+                                  (:board db) tile (get-current-player db))))
     :use         (fn [db instance]
                    (second (update-resources db
                                              (:current-player-idx db)
                                              (:production instance))))
     :place       (fn [db instance])
-                   
-    ; TODO make it so that settlements produce all resources adjacent to them,
-    ; to make things more varied.  This vector describes what is "adjacent"
-    :controlled-tiles [[1 0] [0 1] [1 0] [-1 0]]
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}
     :production  {}}
+   {:type        :capitol
+    :description "Can build off of"
+    :is-legal-placement? (fn [db tile]
+                           (nil? (:development tile)))
+    :use         (fn [db instance]
+                   (second (update-resources db
+                                             (:current-player-idx db)
+                                             (:production instance))))
+    :place       (fn [db instance])
+    :max         3
+    :cost        {}
+    :tax         {}
+    :production  {}}
    {:type        :library
     :description "Draw 3 cards, discard 2"
     :is-legal-placement? (fn [db tile]
-                           (and (is-legal-land-placement tile #{"mountain"})))
+                           (and (is-legal-land-placement tile #{"mountain"})
+                                (nil? (:development tile))))
     :use         (fn [db instance] (assoc db :message "No cards in game yet"))
     :max         2
     :cost        {:wood -1}
@@ -52,7 +71,8 @@
    {:type        :crossroads
     :description "Use all adjacent tiles that have not been used yet."
     :is-legal-placement? (fn [db tile]
-                           (and (is-legal-land-placement tile #{"plains"})))
+                           (and (is-legal-land-placement tile #{"plains"})
+                                (nil? (:development tile))))
     :use         (fn [db instance]
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
@@ -62,7 +82,8 @@
    {:type        :terraformer
     :description "Change the land type of a tile"
     :is-legal-placement? (fn [db tile]
-                           (and (is-legal-land-placement tile #{"sand"})))
+                           (and (is-legal-land-placement tile #{"sand"})
+                                (nil? (:development tile))))
     :use         (fn [db instance]
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
@@ -74,7 +95,8 @@
 (rf/reg-event-db
   :development/use
   (fn [db [_ development {:keys [row-idx col-idx worker-owner]}]]
-    (let [tax (if (= (:current-player-name db) (:owner development))
+    (let [current-player-name (:player-name @(rf/subscribe [:current-player]))
+          tax (if (= current-player-name (:owner development))
                 {}
                 (:tax development))
           [cost-payable updated-db] (update-resources
@@ -90,7 +112,7 @@
                                      :workers]
                                     dec)
                          (assoc-in [:board row-idx col-idx :worker-owner]
-                                   (:current-player-name db))
+                                   current-player-name)
                          ((:use development) development))
         :else        updated-db))))
 
@@ -126,6 +148,7 @@
   (fn [db [_ {:keys [row-idx col-idx legal-placement?]}]]
     (let [existing-num (count @(rf/subscribe [:developments
                                               (:type (:placing db))]))
+          current-player-name (:player-name @(rf/subscribe [:current-player]))
           [cost-payable updated-db] (update-resources db
                                                       (:current-player-idx db)
                                                       (:cost (:placing db)))]
@@ -148,7 +171,7 @@
                                     :production (get-in tile
                                                         [:land :production]))
                     :controller (get-in db [:players (:current-player-idx db)])
-                    :worker-owner (:current-player-name db))))
+                    :worker-owner current-player-name)))
               (update-in [:players (:current-player-idx db) :workers] dec)
               (stop-placing))))))
         

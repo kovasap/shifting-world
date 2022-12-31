@@ -7,25 +7,13 @@
             [re-frame.core :as rf]
             [reagent.core :as r]
             [app.interface.utils :refer [get-only]]
+            [app.interface.players :refer [render-player-card player-data
+                                           next-player-idx]]
             [clojure.string :as st]
             [app.interface.board :refer [render-board update-tiles]]
             [app.interface.developments :refer [developments update-resources]]
             [cljs.pprint]
             [taoensso.timbre :as log]))
-
-(def resource-types
-  [:wood :water :sand])
-
-(defn render-player-card
-  [{:keys [player-name resources workers max-workers]}]
-  (let [current-player-name @(rf/subscribe [:current-player-name])]
-    [:div
-     [:h3 player-name (if (= player-name current-player-name) " *" "")]
-     (into [:div
-             [:div (str "Workers: " workers "/" max-workers)]]
-           (for [resource resource-types]
-             [:div (str (name resource) ": " (resource resources))]))]))
-  
 
 (defn- main
   "Main view for the application."
@@ -34,7 +22,7 @@
         players     @(rf/subscribe [:players])
         placing     @(rf/subscribe [:placing])
         db  @(rf/subscribe [:db-no-board])
-        current-player-name @(rf/subscribe [:current-player-name])]
+        current-player-name (:player-name @(rf/subscribe [:current-player]))]
     [:div.container
      [:h1 "Welcome to Terraforming Catan!"]
      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
@@ -86,15 +74,6 @@
 ;; ----------------------------------------------------------------------------
 ;; Setup
 
-(defn player-data
-  [i player-name]
-  {:player-name player-name
-   :index i
-   :color (get ["blue" "red" "purple" "black"] i)
-   :workers 2
-   :max-workers 2
-   :resources   (into {} (for [t resource-types] [t 1]))})
-
 (rf/reg-event-db
   :game/setup
   (fn [db _]
@@ -114,22 +93,6 @@
   :message
   (fn [db _]
     (:message db)))
-
-(rf/reg-sub
-  :players
-  (fn [db _]
-    (:players db)))
-
-(rf/reg-sub
-  :current-player-name
-  (fn [{:keys [players current-player-idx] :as db} _]
-    (:player-name (nth players current-player-idx))))
-
-(defn next-player-idx
-  [{:keys [players current-player-idx] :as db}]
-  (if (= (+ 1 current-player-idx) (count players))
-    0
-    (+ 1 current-player-idx)))
 
 ;; ----------------------------------------------------------------------------
 ;; End of Turn

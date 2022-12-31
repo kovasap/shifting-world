@@ -81,7 +81,8 @@
         hovered (get-in @tile-hover-state [row-idx col-idx])]
     [:div.tile
      {:style         {:font-size "10px"
-                      :text-align "center"}
+                      :text-align "center"
+                      :position "relative"}
       :on-mouse-over #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}
                               (conj adjacent-tiles tile)]
                         (swap! tile-hover-state
@@ -113,12 +114,14 @@
                       :opacity  (cond (and legal-placement? hovered) 1.0
                                       legal-placement? 0.8
                                       :else 0.7)})}]
-     [:div {:style {:padding-top "10px"}
-            :display (if debug "none" "block")} row-idx ", " col-idx]
-     [:div {:style {:color (:color controller)}}
-      (if controller (str (:player-name controller) "'s") nil)]
-     [:div (if development (name (:type development)) nil)]
-     [:div (if worker-owner worker-owner nil)]]))
+     [:div {:style {:position "absolute"
+                    :padding-top "10px"
+                    :width "100%"}}
+       [:div {:display (if debug "none" "block")} row-idx ", " col-idx]
+       [:div {:style {:color (:color controller)}}
+        (if controller (str (:player-name controller) "'s") nil)]
+       [:div (if development (name (:type development)) nil)]
+       [:div (if worker-owner worker-owner nil)]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must
