@@ -3,6 +3,7 @@
             [reagent.core :as r]
             [perlin2d.core :as p]
             [app.interface.utils :refer [get-only]]
+            [app.interface.resources :refer [resources]]
             [clojure.string :as st]))
 
 ; TODO use one perlin noise for humidity and one for elevation to generate more
@@ -10,32 +11,32 @@
 
 (def lands
   [{:letter     "F"
-    :type       "forest"
+    :type       :forest
     :perlin-cutoff 0.35
     :production {:wood 1}
     :style      {:background-color "green"}}
    {:letter     "P"
-    :type       "plains"
+    :type       :plains
     :perlin-cutoff 0.3
     :production {:food 1}
     :style      {:background-color "orange"}}
    {:letter     "W"
-    :type       "water"
+    :type       :water
     :perlin-cutoff 0.0
     :production {:water 1}
     :style      {:background-color "blue"}}
    {:letter     "M"
-    :type       "mountain"
+    :type       :mountain
     :perlin-cutoff 0.75
     :production {:rock 1}
     :style      {:background-color "grey"}}
    {:letter     "S"
-    :type       "sand"
+    :type       :sand
     :perlin-cutoff 0.2
     :production {:sand 1}
     :style      {:background-color "yellow"}}
    {:letter     "V"
-    :type       "void"
+    :type       :void
     :perlin-cutoff 10.0
     :production {}
     :style      {:background-color "black"}}])
@@ -46,7 +47,7 @@
   (first (first (filter (fn [[_ nxt]] (> (:perlin-cutoff nxt) perlin-cutoff))
                   (partition 2 1 (sort-by :perlin-cutoff lands))))))
 
-(assert (= (:type (get-land-below-perlin-cutoff 0.5)) "forest"))
+(assert (= (:type (get-land-below-perlin-cutoff 0.5)) :forest))
 
 
 ; For a 12x12 map octaves freq amp of 1 0.08 2 seems to work well
@@ -74,8 +75,22 @@
           :legal-placement? false
           ; nil if there is no worker
           :worker-owner     nil
+          :placement-bonus-resources nil
           :land             nil}
          args))
+
+(defn tile-from-str
+  [row-idx col-idx [tile-letter bonus-resource-letter bonus-resource-quantity]]
+  (let [tile (base-tile {:row-idx row-idx
+                         :col-idx col-idx
+                         :land    (get-only lands :letter tile-letter)})]
+    (if bonus-resource-letter
+      (assoc tile
+        :placement-bonus-resources {(:type (get-only resources
+                                                     :letter
+                                                     bonus-resource-letter))
+                                    (js/parseInt bonus-resource-quantity)})
+      tile)))
 
 (defn parse-board-str
   "Returns 2d array of tile maps."
@@ -84,27 +99,23 @@
         (map-indexed
           (fn [row-idx line]
             (into []
-                  (map-indexed
-                    (fn [col-idx tile-letter]
-                      (base-tile 
-                        {:row-idx    row-idx
-                         :col-idx    col-idx
-                         :land       (get-only lands :letter tile-letter)}))
-                    (st/split (st/trim line) #" "))))
+                  (map-indexed (fn [col-idx tile-str]
+                                 (tile-from-str row-idx col-idx tile-str))
+                               (st/split (st/trim line) #" +"))))
           (st/split-lines board-str))))
 
 (def manual-board
   (parse-board-str
-    "F F F F F F F F F F
-     F F F F F F F F F F
-     F F F F M F F F F F
-     F F F F M M F F F F
-     F F F M W M F F F F
-     F F F W M F F F F F
-     S S W W M M F F F F
-     W W W W F F F F F F
-     W W S S F F F F F F
-     W W S S F F F F F F"))
+    "F   F   F   F   F   F   F   F   Fw2 F
+     F   F   F   F   F   F   F   F   Fw1 F
+     F   F   F   F   M   F   F   F   F   F
+     F   F   F   F   M   M   F   F   F   F
+     F   F   F   M   W   M   F   F   Fu1 F
+     F   F   F   W   M   F   F   F   F   F
+     S   S   W   W   M   M   F   F   F   F
+     W   W   W   W   F   F   F   F   F   F
+     W   W   S   S   F   F   F   F   F   F
+     W   W   S   S   F   F   F   F   F   F"))
 
 (defn generate-perlin-board
   "Returns 2d array of tile maps."
@@ -113,7 +124,6 @@
         (for [row-idx (range height)]
           (into []
                 (for [col-idx (range width)]
-                  (base-tile 
-                    {:row-idx    row-idx
-                     :col-idx    col-idx
-                     :land       (get-perlin-land row-idx col-idx)}))))))
+                  (base-tile {:row-idx row-idx
+                              :col-idx col-idx
+                              :land    (get-perlin-land row-idx col-idx)}))))))

@@ -11,13 +11,18 @@
 
 (defn update-resources
   [db player-idx resource-delta]
-  (let [updated (update-in db
-                           [:players player-idx :resources]
-                           #(merge-with + resource-delta %))]
+  (update-in db
+             [:players player-idx :owned-resources]
+             #(merge-with + resource-delta %)))
+
+(defn update-resources-with-check
+  [db player-idx resource-delta]
+  (let [updated (update-resources db player-idx resource-delta)]
     (if (seq (filter (fn [[_ amount]] (> 0 amount))
-               (get-in updated [:players player-idx :resources])))
+               (get-in updated [:players player-idx :owned-resources])))
       [false (assoc db :message "Cannot pay the cost!")]
       [true updated])))
+
 
 (defn is-legal-land-placement
   [tile legal-land-placements]
@@ -27,19 +32,24 @@
   [board tile player]
   (some #(= (:player-name (:controller %)) (:player-name player))
         (get-adjacent-tiles board tile)))
+
+
+(defn is-legal-placement?-shared
+  [db tile]
+  (and (nil? (:development tile))
+       (adjacent-to-owned-developments?
+         (:board db) tile (get-current-player db))))
   
   
 (def developments
   [{:type        :settlement
     :description "Produces resources"
     :is-legal-placement? (fn [db tile]
-                           (and (nil? (:development tile))
-                                (adjacent-to-owned-developments?
-                                  (:board db) tile (get-current-player db))))
+                           (is-legal-placement?-shared db tile))
     :use         (fn [db instance]
-                   (second (update-resources db
-                                             (:current-player-idx db)
-                                             (:production instance))))
+                   (update-resources db
+                             (:current-player-idx db)
+                             (:production instance)))
     :place       (fn [db instance])
     :max         6
     :cost        {:wood -1}
@@ -50,9 +60,9 @@
     :is-legal-placement? (fn [db tile]
                            (nil? (:development tile)))
     :use         (fn [db instance]
-                   (second (update-resources db
-                                             (:current-player-idx db)
-                                             (:production instance))))
+                   (update-resources db
+                             (:current-player-idx db)
+                             (:production instance)))
     :place       (fn [db instance])
     :max         3
     :cost        {}
@@ -61,8 +71,8 @@
    {:type        :library
     :description "Draw 3 cards, discard 2"
     :is-legal-placement? (fn [db tile]
-                           (and (is-legal-land-placement tile #{"mountain"})
-                                (nil? (:development tile))))
+                           (and (= :mountain (:type (:land tile)))
+                                (is-legal-placement?-shared db tile)))
     :use         (fn [db instance] (assoc db :message "No cards in game yet"))
     :max         2
     :cost        {:wood -1}
@@ -71,8 +81,8 @@
    {:type        :crossroads
     :description "Use all adjacent tiles that have not been used yet."
     :is-legal-placement? (fn [db tile]
-                           (and (is-legal-land-placement tile #{"plains"})
-                                (nil? (:development tile))))
+                           (and (= :plains (:type (:land tile)))
+                                (is-legal-placement?-shared db tile)))
     :use         (fn [db instance]
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
@@ -82,8 +92,8 @@
    {:type        :terraformer
     :description "Change the land type of a tile"
     :is-legal-placement? (fn [db tile]
-                           (and (is-legal-land-placement tile #{"sand"})
-                                (nil? (:development tile))))
+                           (and (= :sand (:type (:land tile)))
+                                (is-legal-placement?-shared db tile)))
     :use         (fn [db instance]
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
@@ -99,7 +109,7 @@
           tax (if (= current-player-name (:owner development))
                 {}
                 (:tax development))
-          [cost-payable updated-db] (update-resources
+          [cost-payable updated-db] (update-resources-with-check
                                       db (:current-player-idx db) tax)]
       (cond
         worker-owner (assoc db
@@ -145,35 +155,42 @@
 
 (rf/reg-event-db
   :development/place
-  (fn [db [_ {:keys [row-idx col-idx legal-placement?]}]]
-    (let [existing-num (count @(rf/subscribe [:developments
-                                              (:type (:placing db))]))
+  (fn [db
+       [_
+        {:keys [row-idx col-idx legal-placement? placement-bonus-resources]}]]
+    (let [existing-num        (count @(rf/subscribe [:developments
+                                                     (:type (:placing db))]))
           current-player-name (:player-name @(rf/subscribe [:current-player]))
-          [cost-payable updated-db] (update-resources db
-                                                      (:current-player-idx db)
-                                                      (:cost (:placing db)))]
-      (cond (not legal-placement?)
-            (assoc db :message "Invalid location!")
-            (>= existing-num (:max (:placing db)))
-            (assoc db :message "Max number already placed!")
-            (= 0 (get-in db [:players (:current-player-idx db) :workers]))
-            (assoc db :message "No more workers!")
-            (not cost-payable) updated-db
-            :else
-            (->
-              updated-db
-              (update-in
-                [:board row-idx col-idx]
-                (fn [tile]
-                  (assoc tile
-                    :development  (assoc (:placing db)
-                                    :owner      (:placer db)
-                                    :production (get-in tile
-                                                        [:land :production]))
-                    :controller (get-in db [:players (:current-player-idx db)])
-                    :worker-owner current-player-name)))
-              (update-in [:players (:current-player-idx db) :workers] dec)
-              (stop-placing))))))
+          [cost-payable updated-db] (update-resources-with-check
+                                      db
+                                      (:current-player-idx db)
+                                      (:cost (:placing db)))]
+      (cond
+        (not legal-placement?) (assoc db :message "Invalid location!")
+        (>= existing-num (:max (:placing db)))
+        (assoc db :message "Max number already placed!")
+        (= 0 (get-in db [:players (:current-player-idx db) :workers]))
+        (assoc db :message "No more workers!")
+        (not cost-payable) updated-db
+        :else
+        (->
+          updated-db
+          (update-in
+            [:board row-idx col-idx]
+            (fn [tile]
+              (->
+                tile
+                (dissoc :placement-bonus-resources)
+                (assoc
+                  :development  (assoc (:placing db)
+                                  :owner      (:placer db)
+                                  :production (get-in tile
+                                                      [:land :production]))
+                  :controller   (get-in db [:players (:current-player-idx db)])
+                  :worker-owner current-player-name))))
+          (update-in [:players (:current-player-idx db) :workers] dec)
+          (update-resources (:current-player-idx db) placement-bonus-resources)
+          (stop-placing))))))
         
 
 (rf/reg-sub

@@ -75,6 +75,7 @@
            development
            legal-placement?
            worker-owner
+           placement-bonus-resources
            controller]
     :as   tile}]
   (let [adjacent-tiles @(rf/subscribe [:adjacent-tiles tile])
@@ -120,8 +121,9 @@
        [:div {:display (if debug "none" "block")} row-idx ", " col-idx]
        [:div {:style {:color (:color controller)}}
         (if controller (str (:player-name controller) "'s") nil)]
-       [:div (if development (name (:type development)) nil)]
-       [:div (if worker-owner worker-owner nil)]]]))
+       [:div (:type development)]
+       [:div worker-owner]
+       [:div (str placement-bonus-resources)]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must
