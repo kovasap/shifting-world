@@ -20,25 +20,23 @@
            controller]
     :as   tile}]
   (let [adjacent-tiles @(rf/subscribe [:adjacent-tiles tile])
-        hovered (get-in @tile-hover-state [row-idx col-idx])]
+        hovered        (get-in @tile-hover-state [row-idx col-idx])]
     [:div.tile
-     {:style         {:font-size "10px"
+     {:style         {:font-size  "10px"
                       :text-align "center"
-                      :position "relative"}
-      :on-mouse-over #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}]
-                            (conj adjacent-tiles tile)
-                        (swap! tile-hover-state
-                             (fn [state]
-                               (assoc-in state
-                                 [t-row-idx t-col-idx]
-                                 true))))
-      :on-mouse-out #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}
-                             (conj adjacent-tiles tile)]
-                       (swap! tile-hover-state
-                            (fn [state]
-                              (assoc-in state
-                                [t-row-idx t-col-idx]
-                                false))))
+                      :position   "relative"}
+      :on-mouse-over #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}
+                              (conj adjacent-tiles tile)]
+                        (swap! tile-hover-state (fn [state]
+                                                  (assoc-in state
+                                                    [t-row-idx t-col-idx]
+                                                    true))))
+      :on-mouse-out  #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}
+                              (conj adjacent-tiles tile)]
+                        (swap! tile-hover-state (fn [state]
+                                                  (assoc-in state
+                                                    [t-row-idx t-col-idx]
+                                                    false))))
       :on-click      #(cond @(rf/subscribe [:placing]) (rf/dispatch
                                                          [:development/place
                                                           tile])
@@ -56,16 +54,20 @@
                       :opacity  (cond (and legal-placement? hovered) 1.0
                                       legal-placement? 0.8
                                       :else 0.7)})}]
-     (development-card-view)
-     [:div {:style {:position "absolute"
-                    :padding-top "10px"
-                    :width "100%"}}
-       [:div {:display (if debug "none" "block")} row-idx ", " col-idx]
-       [:div {:style {:color (:color controller)}}
-        (if controller (str (:player-name controller) "'s") nil)]
-       [:div (:type development)]
-       [:div worker-owner]
-       [:div (str placement-bonus-resources)]]]))
+     ; Note that the "clip-path" property that makes the hexagon shapes applies
+     ; to all child divs, making it impossible for them to overflow their
+     ; parent.
+     (development-card-view development)
+     [:div {:style {:position "absolute" :padding-top "10px" :width "100%"}}
+      [:div {:style {:display (if debug "block" "none")}}
+       row-idx
+       ", "
+       col-idx]
+      [:div {:style {:color (:color controller)}}
+       (if controller (str (:player-name controller) "'s") nil)]
+      [:div (:type development)]
+      [:div worker-owner]
+      [:div (str placement-bonus-resources)]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must

@@ -6,13 +6,10 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]
             [reagent.core :as r]
-            [app.interface.utils :refer [get-only]]
-            [app.interface.players :refer [render-player-card player-data
-                                           next-player-idx]]
+            [app.interface.players :refer [player-data next-player-idx]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
-            [app.interface.board :refer [render-board update-tiles]]
-            [app.interface.developments :refer [developments update-resources]]
+            [app.interface.board :refer [update-tiles]]
             [cljs.pprint]
             [taoensso.timbre :as log]))
 

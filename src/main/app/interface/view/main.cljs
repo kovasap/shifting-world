@@ -1,13 +1,10 @@
 (ns app.interface.view.main
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
-            [app.interface.utils :refer [get-only]]
-            [app.interface.players :refer [render-player-card player-data
-                                           next-player-idx]]
             [clojure.string :as st]
             [app.interface.view.map :refer [board-view]]
             [app.interface.view.players :refer [player-card-view]]
-            [app.interface.developments :refer [developments update-resources]]
+            [app.interface.developments :refer [developments]]
             [cljs.pprint]))
 
 (defn- main

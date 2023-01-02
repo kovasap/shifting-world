@@ -4,9 +4,25 @@
             [app.interface.developments :refer [developments]]))
 
 
+(def dev-card-hover-state (r/atom {}))
 (defn development-card-view
   [development]
-  ; TODO add a wrapping div that on hover triggers the showing of the card
-  [:div {:style}
-    [:div {:style {:position "fixed" :background "white"}}
-       (:description development)]])
+  [:div {:style         {:width "100%" :height "100%" :position "absolute"
+                         :z-index 1}
+         :on-mouse-over #(swap! dev-card-hover-state (fn [state]
+                                                       (assoc state
+                                                         development true)))
+         :on-mouse-out  #(swap! dev-card-hover-state (fn [state]
+                                                       (assoc state
+                                                         development false)))}
+   [:div
+    {:style {:position   "absolute"
+             :background "white"
+             :overflow   "visible"
+             :text-align "left"
+             :top 35
+             :z-index    2
+             :display    (if (get @dev-card-hover-state development)
+                           "block"
+                           "none")}}
+    (:description development)]])
