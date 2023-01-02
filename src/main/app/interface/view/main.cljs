@@ -48,7 +48,8 @@
                                         (:type development)
                                         current-player-name]))}
             [:div "Place " n " " (count existing) "/" (:max development)]
-            [:div "(cost " (:cost development) ")"]]))
+            [:div "(cost " (:cost development) ")"]
+            [:div (:description development)]]))
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
         "End Turn"]
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}

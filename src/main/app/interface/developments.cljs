@@ -28,6 +28,20 @@
     :cost        {:wood -1}
     :tax         {:food -1}
     :production  {}}
+   {:type        :mill
+    :description "Produces planks from wood OR wheat from grain."
+    :is-legal-placement? (fn [db tile]
+                           (and (= :plains (:type (:land tile)))
+                             (is-legal-placement?-shared db tile)))
+    :use         (fn [db instance]
+                   (update-resources db
+                                     (:current-player-idx db)
+                                     (:production instance)))
+    :place       (fn [db instance])
+    :max         6
+    :cost        {:wood -1}
+    :tax         {:food -1}
+    :production  {}}
    {:type        :capitol
     :description "Take starting player and get some resources"
     :is-legal-placement? (fn [db tile] (nil? (:development tile)))
