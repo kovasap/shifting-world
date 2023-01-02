@@ -44,30 +44,33 @@
 (def developments
   [{:type        :settlement
     :description "Produces resources"
-    :is-legal-placement? (fn [db tile]
-                           (is-legal-placement?-shared db tile))
+    :is-legal-placement? (fn [db tile] (is-legal-placement?-shared db tile))
     :use         (fn [db instance]
                    (update-resources db
-                             (:current-player-idx db)
-                             (:production instance)))
+                                     (:current-player-idx db)
+                                     (:production instance)))
     :place       (fn [db instance])
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}
     :production  {}}
    {:type        :capitol
-    :description "Can build off of"
-    :is-legal-placement? (fn [db tile]
-                           (nil? (:development tile)))
+    :description "Take starting player and get some resources"
+    :is-legal-placement? (fn [db tile] (nil? (:development tile)))
     :use         (fn [db instance]
-                   (update-resources db
-                             (:current-player-idx db)
-                             (:production instance)))
+                   (let [current-player (get-current-player db)]
+                     (-> db
+                         (update :players
+                                 (fn [ps]
+                                   (into [current-player]
+                                         (remove #(= % current-player) ps))))
+                         (update-resources (:current-player-idx db)
+                                           (:production instance)))))
     :place       (fn [db instance])
     :max         3
-    :cost        {}
+    :cost        {:stone -5}
     :tax         {}
-    :production  {}}
+    :production  {:water 1}}
    {:type        :library
     :description "Draw 3 cards, discard 2"
     :is-legal-placement? (fn [db tile]
