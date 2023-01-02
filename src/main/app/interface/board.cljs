@@ -5,7 +5,6 @@
             [app.interface.map-generation :refer [manual-board
                                                   generate-perlin-board]]))
 
-
 (defn update-tiles
   [board update-fn]
   (into []
@@ -56,6 +55,10 @@
   (fn [db [_ tile]]
     (get-adjacent-tiles (:board db) tile)))
 
+(defn adjacent-to-owned-developments?
+  [board tile player]
+  (some #(= (:player-name (:controller %)) (:player-name player))
+        (get-adjacent-tiles board tile)))
 
 (defn update-adjacent-tiles
   [board tile update-fn]

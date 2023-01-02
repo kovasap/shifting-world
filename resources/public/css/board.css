@@ -30,3 +30,27 @@
                    #0000 0 calc(var(--f) - 3px),      
                    #000  0 var(--f));
 }
+
+@keyframes flex-size {
+  0%   {
+    font-size: 10px;
+  }
+  50%   {
+    font-size: 14px;
+  }
+  100%   {
+    font-size: 10px;
+  }
+}
+
+.activate {
+  -webkit-animation-name: flex-size;
+  -webkit-animation-duration: 2s;
+  -webkit-animation-iteration-count: 1;
+  -moz-animation-name: flex-size;
+  -moz-animation-duration: 2s;
+  -moz-animation-iteration-count: 1;
+  animation-name: flex-size;
+  animation-duration: 2s;
+  animation-iteration-count: 1;
+}

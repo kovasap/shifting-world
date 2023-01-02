@@ -25,6 +25,7 @@
      {:style         {:font-size  "10px"
                       :text-align "center"
                       :position   "relative"}
+      :class         (if hovered "activate" "") 
       :on-mouse-over #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}
                               (conj adjacent-tiles tile)]
                         (swap! tile-hover-state (fn [state]

@@ -1,38 +1,12 @@
 (ns app.interface.developments
-  (:require [re-frame.core :as rf]
-            [app.interface.players :refer [get-current-player]]
-            [app.interface.board :refer [update-tiles get-adjacent-tiles]]
-            [app.interface.map-generation :refer [lands]]
-            [app.interface.utils :refer [get-only]]))
-
-(def all-land-types
-  (into #{} (for [land lands]
-              (:type land))))
-
-(defn update-resources
-  [db player-idx resource-delta]
-  (update-in db
-             [:players player-idx :owned-resources]
-             #(merge-with + resource-delta %)))
-
-(defn update-resources-with-check
-  [db player-idx resource-delta]
-  (let [updated (update-resources db player-idx resource-delta)]
-    (if (seq (filter (fn [[_ amount]] (> 0 amount))
-               (get-in updated [:players player-idx :owned-resources])))
-      [false (assoc db :message "Cannot pay the cost!")]
-      [true updated])))
-
-
-(defn is-legal-land-placement
-  [tile legal-land-placements]
-  (contains? legal-land-placements (:type (:land tile))))
-
-(defn adjacent-to-owned-developments?
-  [board tile player]
-  (some #(= (:player-name (:controller %)) (:player-name player))
-        (get-adjacent-tiles board tile)))
-
+  (:require
+    [re-frame.core :as rf]
+    [app.interface.players
+     :refer
+     [get-current-player update-resources update-resources-with-check]]
+    [app.interface.board :refer [update-tiles adjacent-to-owned-developments?]]
+    [app.interface.map-generation :refer [lands]]
+    [app.interface.utils :refer [get-only]]))
 
 (defn is-legal-placement?-shared
   [db tile]
