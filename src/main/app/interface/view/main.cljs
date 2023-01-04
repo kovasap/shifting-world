@@ -3,18 +3,21 @@
             [reagent.core :as r]
             [clojure.string :as st]
             [app.interface.view.map :refer [board-view]]
+            [app.interface.view.orders :refer [order-view]]
             [app.interface.view.players :refer [player-card-view]]
             [app.interface.developments :refer [developments]]
             [cljs.pprint]))
 
-(defn- main
+(defn main
   "Main view for the application."
   []
   (let [experiments @(rf/subscribe [:experiments])
         players     @(rf/subscribe [:players])
         placing     @(rf/subscribe [:placing])
         db  @(rf/subscribe [:db-no-board])
+        orders @(rf/subscribe [:orders])
         current-player-name (:player-name @(rf/subscribe [:current-player]))]
+    (prn orders)
     [:div.container
      [:h1 "Welcome to Terraforming Catan!"]
      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
@@ -54,8 +57,9 @@
         "End Turn"]
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
         "End Round"]]
-      [:div "TODO add diff of game state to show what just happened\n"
-       [:pre (with-out-str (cljs.pprint/pprint db))]]]]))
+      (into [:div [:h1 "Orders"]] (for [order orders] (order-view order)))]
+     [:div "TODO add diff of game state to show what just happened\n"
+      [:pre (with-out-str (cljs.pprint/pprint db))]]]))
 
 
 

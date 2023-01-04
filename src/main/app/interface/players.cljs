@@ -45,5 +45,3 @@
   (if (= (+ 1 current-player-idx) (count players))
     0
     (+ 1 current-player-idx)))
-
-

@@ -10,11 +10,10 @@
   (into []
         (for [column board] (into [] (for [tile column] (update-fn tile))))))
 
-(rf/reg-event-db
-  :board/setup
-  (fn [db _]
-    (assoc db :board manual-board)))
-    ; (assoc db :board (generate-perlin-board 15 10))))
+(defn setup-board
+  [db]
+  (assoc db :board manual-board))
+  ; (assoc db :board (generate-perlin-board 15 10))))
 
 (rf/reg-sub
   :board

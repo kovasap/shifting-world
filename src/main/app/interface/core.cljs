@@ -9,7 +9,8 @@
             [app.interface.players :refer [player-data next-player-idx]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
-            [app.interface.board :refer [update-tiles]]
+            [app.interface.board :refer [update-tiles setup-board]]
+            [app.interface.orders :refer [orders]]
             [cljs.pprint]
             [taoensso.timbre :as log]))
 
@@ -25,12 +26,15 @@
 (rf/reg-event-db
   :game/setup
   (fn [db _]
-    (rf/dispatch [:board/setup])
-    (assoc db
-      :message ""
-      :players (into [] (map-indexed player-data ["cupid" "zeus" "hades"]))
-      :current-player-idx 0
-      :placing false)))
+    (prn db)
+    (-> db
+     (setup-board)
+     (assoc
+         :message ""
+         :orders (take 3 (shuffle orders))
+         :players (into [] (map-indexed player-data ["cupid" "zeus" "hades"]))
+         :current-player-idx 0
+         :placing false))))
 
 (rf/reg-event-db
   :message
@@ -56,6 +60,7 @@
   :end-round
   (fn [db [_]]
     (-> db
+        ; TODO check if orders have been fulfilled and end the game if so.
         (update :players
                 (fn [players]
                   (into []
