@@ -16,7 +16,7 @@
            development
            legal-placement?
            worker-owner
-           placement-bonus-resources
+           claimable-resources
            controller]
     :as   tile}]
   (let [adjacent-tiles @(rf/subscribe [:adjacent-tiles tile])
@@ -68,7 +68,7 @@
        (if controller (str (:player-name controller) "'s") nil)]
       [:div (:type development)]
       [:div worker-owner]
-      [:div (str placement-bonus-resources)]]]))
+      [:div (str claimable-resources)]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must
@@ -77,7 +77,7 @@
 (def hex-margin-px 4)
 (defn required-hex-grid-px-width
   [board]
-  (let [board-cols (count board)]
+  (let [board-cols (count (first board))]
     (+ (* 2 hex-margin-px board-cols)
        ; add 1 to board-cols here to make sure that every row has the same
        ; number of hexes

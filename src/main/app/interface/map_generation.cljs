@@ -4,6 +4,7 @@
             [perlin2d.core :as p]
             [app.interface.utils :refer [get-only]]
             [app.interface.resources :refer [resources]]
+            [app.interface.developments :refer [developments]]
             [clojure.string :as st]))
 
 ; TODO use one perlin noise for humidity and one for elevation to generate more
@@ -75,22 +76,26 @@
           :legal-placement? false
           ; nil if there is no worker
           :worker-owner     nil
-          :placement-bonus-resources nil
+          :claimable-resources {}
           :land             nil}
          args))
 
 (defn tile-from-str
-  [row-idx col-idx [tile-letter bonus-resource-letter bonus-resource-quantity]]
+  [row-idx col-idx [tile-letter bonus-letter bonus-resource-quantity]]
   (let [tile (base-tile {:row-idx row-idx
                          :col-idx col-idx
-                         :land    (get-only lands :letter tile-letter)})]
-    (if bonus-resource-letter
-      (assoc tile
-        :placement-bonus-resources {(:type (get-only resources
-                                                     :letter
-                                                     bonus-resource-letter))
-                                    (js/parseInt bonus-resource-quantity)})
-      tile)))
+                         :land    (get-only lands :letter tile-letter)})
+        bonus-resource (:type (get-only resources :letter bonus-letter))
+        neutral-development (get-only developments :letter bonus-letter)]
+    (cond
+     bonus-resource
+     (assoc tile :claimable-resources {bonus-resource
+                                       (js/parseInt bonus-resource-quantity)})
+     neutral-development
+     (assoc tile :development (assoc neutral-development
+                                     :owner "neutral"
+                                     :tax {}))
+     :else tile)))
 
 (defn parse-board-str
   "Returns 2d array of tile maps."
@@ -106,15 +111,13 @@
 
 (def manual-board
   (parse-board-str
-    "F   F   F   F   F   F   F   F   Fw2 F
-     F   F   F   F   F   F   F   F   Fw1 F
+    "F   F   F   F   F   F   F   F   Fw1 F
      F   F   F   F   M   F   F   F   F   F
      F   F   F   F   M   M   F   F   F   F
-     F   F   F   M   W   M   F   F   Fu1 F
+     F   F   F   M   W   MS  F   F   Fu1 F
      F   F   F   W   M   F   F   F   F   F
      S   S   W   W   M   M   F   F   F   F
      W   W   W   W   F   F   F   F   F   F
-     W   W   S   S   F   F   F   F   F   F
      W   W   S   S   F   F   F   F   F   F"))
 
 (defn generate-perlin-board
@@ -127,3 +130,8 @@
                   (base-tile {:row-idx row-idx
                               :col-idx col-idx
                               :land    (get-perlin-land row-idx col-idx)}))))))
+
+(defn setup-board
+  [db]
+  (assoc db :board manual-board))
+  ; (assoc db :board (generate-perlin-board 15 10))))

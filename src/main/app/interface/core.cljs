@@ -9,7 +9,8 @@
             [app.interface.players :refer [player-data next-player-idx]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
-            [app.interface.board :refer [update-tiles setup-board]]
+            [app.interface.board :refer [update-tiles]]
+            [app.interface.map-generation :refer [setup-board]]
             [app.interface.orders :refer [orders]]
             [cljs.pprint]
             [taoensso.timbre :as log]))
@@ -26,7 +27,6 @@
 (rf/reg-event-db
   :game/setup
   (fn [db _]
-    (prn db)
     (-> db
      (setup-board)
      (assoc
@@ -53,8 +53,7 @@
   :end-turn
   (fn [db [_]]
     (-> db
-        (assoc :current-player-idx (next-player-idx db)))))
-
+      (assoc :current-player-idx (next-player-idx db)))))
 
 (rf/reg-event-db
   :end-round
@@ -66,9 +65,13 @@
                   (into []
                         (for [player players]
                           (assoc player :workers (:max-workers player))))))
+        (update :board update-tiles (fn [tile] (assoc tile :worker-owner nil)))
         (update :board
                 update-tiles
-                (fn [tile] (assoc tile :worker-owner nil))))))
+                (fn [{:keys [development] :as tile}]
+                  (if (and development (:resource-accumulation development))
+                    ((:resource-accumulation development) tile)
+                    tile))))))
 
 
 ;; -----------------------------------------------------------------------------

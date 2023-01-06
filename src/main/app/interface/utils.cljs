@@ -6,4 +6,4 @@
 
 (defn get-only
   [list-of-maps k v]
-  (only (get (group-by k list-of-maps) v)))
+  (only (get (dissoc (group-by k list-of-maps) nil) v)))

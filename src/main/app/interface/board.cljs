@@ -1,19 +1,12 @@
 (ns app.interface.board
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
-            [app.interface.config :refer [debug]]
-            [app.interface.map-generation :refer [manual-board
-                                                  generate-perlin-board]]))
+            [app.interface.config :refer [debug]]))
 
 (defn update-tiles
   [board update-fn]
   (into []
         (for [column board] (into [] (for [tile column] (update-fn tile))))))
-
-(defn setup-board
-  [db]
-  (assoc db :board manual-board))
-  ; (assoc db :board (generate-perlin-board 15 10))))
 
 (rf/reg-sub
   :board

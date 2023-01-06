@@ -19,6 +19,9 @@ tax (in resources).
  - Production Chains.
    Buildings build next to each other can "chain" resources, converting raw
    resources into refined ones.
+   If a building requires a raw resource, it can either come from your bank, or
+   it will trigger adjacent buildings to produce the resource when you place
+   your worker on it for free.
  - Make it so that when you build a library a new deck of cards is created for
    that library specifically.
    You as the builder get to look at (and reorder?) the top 3 cards (or the
