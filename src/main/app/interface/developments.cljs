@@ -1,17 +1,28 @@
 (ns app.interface.developments
   (:require
-    [re-frame.core :as rf]
-    [app.interface.players
-     :refer
-     [get-current-player update-resources update-resources-with-check]]
-    [app.interface.board :refer [update-tiles adjacent-to-owned-developments?]]
-    [app.interface.utils :refer [get-only]]))
+   [re-frame.core :as rf]
+   [app.interface.players
+    :refer
+    [get-current-player update-resources update-resources-with-check]]
+   [app.interface.board :refer [update-tiles adjacent-to-owned-developments?
+                                get-adjacent-tiles]]
+   [app.interface.utils :refer [get-only]]))
 
 (defn is-legal-placement?-shared
   [db tile]
   (and (nil? (:development tile))
        (adjacent-to-owned-developments?
          (:board db) tile (get-current-player db))))
+
+
+(defn has-resource-sources?
+  [development board tile]
+  (let [adjacent-developments (filter #(not (nil? %))
+                                      (map :development
+                                           (get-adjacent-tiles board tile)))]
+    ; TODO make sure that the sum of all possible inputs contains the needed
+    ; inputs for this development
+    (reduce merge-with + (map :production adjacent-developments))))
 
 
 ; TODO add malli spec for development
@@ -22,7 +33,7 @@
     :letter      "S"
     :description "Accumulates resources for future collection/processing."
     :is-legal-placement? (fn [db tile] (is-legal-placement?-shared db tile))
-    :use         (fn [db instance] db
+    :use         (fn [db instance tile] db
                    #_(update-resources db
                                        (:current-player-idx db)
                                        (:production instance)))
@@ -40,7 +51,12 @@
     :is-legal-placement? (fn [db tile]
                            (and (= :plains (:type (:land tile)))
                              (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance] db)
+    :use         (fn [db instance tile]
+                   ; Check for adjacent source of planks or wheat
+                   (if (has-resource-sources? instance (:board db) tile)
+                     ; TODO update personal resource count
+                     db
+                     (:assoc db :message "Broken production chain!")))
     :place       (fn [db instance])
     :max         6
     :cost        {:wood -1}
@@ -51,7 +67,7 @@
     :is-legal-placement? (fn [db tile]
                            (and (= :plains (:type (:land tile)))
                              (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance] db)
+    :use         (fn [db instance tile] db)
     :place       (fn [db instance])
     :max         6
     :cost        {:wood -1}
@@ -60,7 +76,7 @@
    {:type        :capitol
     :description "Take starting player and get some resources"
     :is-legal-placement? (fn [db tile] (nil? (:development tile)))
-    :use         (fn [db instance]
+    :use         (fn [db instance tile]
                    (let [current-player (get-current-player db)]
                      (-> db
                          (update :players
@@ -79,7 +95,7 @@
     :is-legal-placement? (fn [db tile]
                            (and (= :mountain (:type (:land tile)))
                                 (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance] (assoc db :message "No cards in game yet"))
+    :use         (fn [db instance tile] (assoc db :message "No cards in game yet"))
     :max         2
     :cost        {:wood -1}
     :tax         {:sand -1}
@@ -89,7 +105,7 @@
     :is-legal-placement? (fn [db tile]
                            (and (= :plains (:type (:land tile)))
                                 (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance]
+    :use         (fn [db instance tile]
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
     :cost        {:wood -1}
@@ -100,7 +116,7 @@
     :is-legal-placement? (fn [db tile]
                            (and (= :sand (:type (:land tile)))
                                 (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance]
+    :use         (fn [db instance tile]
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
     :cost        {:wood -1}
@@ -137,7 +153,7 @@
                          (assoc-in [:board row-idx col-idx :worker-owner]
                                    current-player-name)
                          (claim-resources (:current-player-idx db) tile)
-                         ((:use development) development))
+                         ((:use development) development tile))
         :else        updated-db))))
 
 (defn stop-placing

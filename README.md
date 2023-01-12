@@ -12,10 +12,8 @@ tax (in resources).
 
 ### Stuff to Add
 
- - Win condition for board game: orders from the capitol.
-   A deck of cards with requirements like "deliver 10 planks".
-   First player to fulfill each one gets victory points.
-   Also add trading post (2-to-1 resources) if it doesn't already exist
+ - Randomize which buildings are available for each game, like in against the
+   storm.
  - Production Chains.
    Buildings build next to each other can "chain" resources, converting raw
    resources into refined ones.
