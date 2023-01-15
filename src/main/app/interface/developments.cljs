@@ -11,17 +11,17 @@
 (defn is-legal-placement?-shared
   [db tile]
   (and (nil? (:development tile))
-       (adjacent-to-owned-developments?
-         (:board db) tile (get-current-player db))))
+       #_(adjacent-to-owned-developments?
+           (:board db) tile (get-current-player db))))
 
 
 
 (defn accumulate-land-resources
   [{:keys [development] :as tile}]
   (if (and development (:land-accumulation development))
-    (update tile :claimable-resources
-      #(merge-with + % (:land-accumulation tile)))
-    tile))
+   (update tile :claimable-resources
+    #(merge-with + % (:land-accumulation tile)))
+   tile))
 
 
 (defn get-neg-pairs [m] (into {} (for [[k v] m :when (neg? v)] [k v])))
@@ -41,8 +41,8 @@
      (get-neg-pairs diff)]))
 
 
-(assert (= [{:wood 0, :grain 1} {:wood -5, :grain 1}]
-          (resource-diff {:wood 5 :grain 2} {:wood -10 :grain -1})))
+(assert (= [{:wood 0 :grain 1} {:wood -5}]
+           (resource-diff {:wood 5 :grain 2} {:wood -10 :grain -1})))
 
 
 (defn drain-resources
@@ -84,9 +84,9 @@
 
 (defn accumulate-production-resources
   "Remove consumed and add produced resources."
-  [board {:keys [development] :as tile}]
-  ((apply comp (for [pc (:production-chains development)]
-                 #(execute-production-chain pc % tile)))
+  [board {{:keys [production-chains]} :development :as tile}]
+  ((apply comp identity (for [pc production-chains]
+                          #(execute-production-chain pc % tile)))
    board))
 
 
@@ -115,7 +115,7 @@
     :production-chains [{:wood -1 :planks 1}
                         {:grain -1 :flour 1}]
     :is-legal-placement? (fn [db tile]
-                           (and (= :plains (:type (:land tile)))
+                           (and #_(= :plains (:type (:land tile)))
                              (is-legal-placement?-shared db tile)))
     :resource-accumulation (fn [tile]
                              (update tile :claimable-resources

@@ -1,5 +1,6 @@
 (ns app.interface.players
   (:require [re-frame.core :as rf]
+            [app.interface.config :refer [debug]]
             [app.interface.resources :refer [resources]]))
 
 (defn update-resources
@@ -23,8 +24,10 @@
    :color (get ["blue" "red" "purple" "black"] i)
    :workers 2
    :max-workers 2
-   :owned-resources   (assoc (into {} (for [{:keys [type]} resources] [type 0]))
-                            :stone 5)})
+   :owned-resources   (if debug
+                        {:wood 2 :stone 5}
+                        (assoc (into {} (for [{:keys [type]} resources] [type 0]))
+                              :stone 5))})
 
 (defn reset-workers
   [player]

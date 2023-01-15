@@ -17,7 +17,6 @@
         db  @(rf/subscribe [:db-no-board])
         orders @(rf/subscribe [:orders])
         current-player-name (:player-name @(rf/subscribe [:current-player]))]
-    (prn orders)
     [:div.container
      [:h1 "Welcome to Terraforming Catan!"]
      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}

@@ -114,7 +114,7 @@
     "F   F   F   F   F   F   F   F   Fw1 F
      F   F   F   F   M   F   F   F   F   F
      F   F   F   F   M   M   F   F   F   F
-     F   F   F   M   W   MS  F   F   Fu1 F
+     F   F   F   M   W   MS  FS  F   Fu1 F
      F   F   F   W   M   F   F   F   F   F
      S   S   W   W   M   M   F   F   F   F
      W   W   W   W   F   F   F   F   F   F
