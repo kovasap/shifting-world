@@ -8,23 +8,6 @@
   (into []
         (for [column board] (into [] (for [tile column] (update-fn tile))))))
 
-
-(defn update-board-tile
-  "Returns a new board with the first tile in the list updated."
-  [board tiles update-fn]
-  (if (empty? tiles)
-    board
-    (let [{:keys [row-idx col-idx]} (first tiles)]
-        (-> board
-          (update-in [row-idx col-idx] (partial update-fn board))
-          (update-board-tile (rest tiles) update-fn)))))
-  
-
-(defn update-board-tiles
-  "Feeds the updated board as an additional argument to each call of update-fn."
-  [board update-fn]
-  (update-board-tile board (reduce concat board) update-fn))
-
 (rf/reg-sub
   :board
   (fn [db _]

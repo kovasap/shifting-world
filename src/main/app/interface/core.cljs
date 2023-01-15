@@ -9,10 +9,11 @@
             [app.interface.players :refer [player-data next-player-idx reset-workers]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
-            [app.interface.board :refer [update-tiles update-board-tiles]]
-            [app.interface.developments
+            [app.interface.board :refer [update-tiles]]
+            [app.interface.resource-flow
              :refer
-             [accumulate-land-resources accumulate-production-resources]]
+             [accumulate-land-resources accumulate-production-resources
+              update-board-tiles]]
             [app.interface.map-generation :refer [setup-board]]
             [app.interface.orders :refer [orders]]
             [cljs.pprint]
