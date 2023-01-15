@@ -3,8 +3,8 @@
 */
 .boardmain {
   display:flex;
-  --s: 100px;  /* size  */
-  --m: 4px;    /* margin */
+  --s: 180px;  /* size  */
+  --m: 5px;    /* margin */
   --f: calc(1.732 * var(--s) + 4 * var(--m)  - 1px);
 }
 

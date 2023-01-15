@@ -14,32 +14,26 @@
   [{:letter     "F"
     :type       :forest
     :perlin-cutoff 0.35
-    :production {:wood 1}
     :style      {:background-color "green"}}
    {:letter     "P"
     :type       :plains
     :perlin-cutoff 0.3
-    :production {:food 1}
     :style      {:background-color "orange"}}
    {:letter     "W"
     :type       :water
     :perlin-cutoff 0.0
-    :production {:water 1}
     :style      {:background-color "blue"}}
    {:letter     "M"
     :type       :mountain
     :perlin-cutoff 0.75
-    :production {:rock 1}
     :style      {:background-color "grey"}}
    {:letter     "S"
     :type       :sand
     :perlin-cutoff 0.2
-    :production {:sand 1}
     :style      {:background-color "yellow"}}
    {:letter     "V"
     :type       :void
     :perlin-cutoff 10.0
-    :production {}
     :style      {:background-color "black"}}])
 
 
@@ -109,9 +103,9 @@
                                (st/split (st/trim line) #" +"))))
           (st/split-lines board-str))))
 
-(def manual-board
-  (parse-board-str
-    "F   F   F   F   F   F   F   F   Fw1 F
+#_(def manual-board
+    (parse-board-str
+      "F   F   F   F   F   F   F   F   Fw1 F
      F   F   F   F   M   F   F   F   F   F
      F   F   F   F   M   M   F   F   F   F
      F   F   F   M   W   MS  FS  F   Fu1 F
@@ -119,6 +113,15 @@
      S   S   W   W   M   M   F   F   F   F
      W   W   W   W   F   F   F   F   F   F
      W   W   S   S   F   F   F   F   F   F"))
+
+(def manual-board
+  (parse-board-str
+    "Fw1 M   M   F   F   F   F
+     M   W   MS  FS  F   Fu1 F
+     W   M   F   F   F   F   F
+     W   M   M   F   F   F   F
+     S   F   F   F   F   F   F"))
+
 
 (defn generate-perlin-board
   "Returns 2d array of tile maps."

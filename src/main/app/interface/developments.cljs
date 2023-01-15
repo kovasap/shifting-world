@@ -25,15 +25,12 @@
     :is-legal-placement? (fn [db tile] (is-legal-placement?-shared db tile))
     :land-accumulation {:forest {:wood 1}
                         :plains {:food 1}
+                        :mountain {:stone 1}
                         :water {:water 1}}
     :production-chains []
-    :resource-accumulation (fn [tile]
-                             (update tile :claimable-resources
-                               #(merge-with + % (:production (:land tile)))))
     :max         6
     :cost        {:wood -1}
-    :tax         {:food -1}
-    :production  {}}
+    :tax         {:food -1}}
    {:type        :mill
     :letter      "M"
     :description "Produces planks from wood AND/OR flour from grain."
@@ -43,13 +40,9 @@
     :is-legal-placement? (fn [db tile]
                            (and #_(= :plains (:type (:land tile)))
                              (is-legal-placement?-shared db tile)))
-    :resource-accumulation (fn [tile]
-                             (update tile :claimable-resources
-                               #(merge-with + % (:production (:land tile)))))
     :max         6
     :cost        {:wood -1}
-    :tax         {:food -1}
-    :production  {}}
+    :tax         {:food -1}}
    {:type        :trading-post
     :description "Trade any resources 2 to 1."
     :is-legal-placement? (fn [db tile]
@@ -57,10 +50,9 @@
                              (is-legal-placement?-shared db tile)))
     :max         6
     :cost        {:wood -1}
-    :tax         {:food -1}
-    :production  {}}
+    :tax         {:food -1}}
    {:type        :capitol
-    :description "Take starting player and get some resources"
+    :description "Take starting player and get 1 water."
     :is-legal-placement? (fn [db tile] (nil? (:development tile)))
     :use         (fn [db instance tile]
                    (let [current-player (get-current-player db)]
@@ -70,11 +62,10 @@
                                    (into [current-player]
                                          (remove #(= % current-player) ps))))
                          (update-resources (:current-player-idx db)
-                                           (:production instance)))))
+                                           {:water 1}))))
     :max         3
     :cost        {:stone -5}
-    :tax         {}
-    :production  {:water 1}}
+    :tax         {}}
    {:type        :library
     :description "Draw 3 cards, discard 2"
     :is-legal-placement? (fn [db tile]
@@ -83,8 +74,7 @@
     :use         (fn [db instance tile] (assoc db :message "No cards in game yet"))
     :max         2
     :cost        {:wood -1}
-    :tax         {:sand -1}
-    :production  {}}
+    :tax         {:sand -1}}
    {:type        :terraformer
     :description "Change the land type of a tile"
     :is-legal-placement? (fn [db tile]
@@ -94,8 +84,7 @@
                    (assoc db :message "Terraformer not implemented yet"))
     :max         3
     :cost        {:wood -1}
-    :tax         {:stone -1}
-    :production  {}}])
+    :tax         {:stone -1}}])
 
 
 (defn claim-resources
@@ -184,9 +173,7 @@
             [:board row-idx col-idx]
             #(assoc %
                 :development  (assoc (:placing db)
-                                :owner      (:placer db)
-                                :production (get-in %
-                                                    [:land :production]))
+                                :owner      (:placer db))
                 :controller   (get-in db [:players (:current-player-idx db)])
                 :worker-owner current-player-name))
           (update-in [:players (:current-player-idx db) :workers] dec)

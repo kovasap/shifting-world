@@ -22,7 +22,7 @@
   (let [adjacent-tiles @(rf/subscribe [:adjacent-tiles tile])
         hovered        (get-in @tile-hover-state [row-idx col-idx])]
     [:div.tile
-     {:style         {:font-size  "10px"
+     {:style         {:font-size  "12px"
                       :text-align "center"
                       :position   "relative"}
       :class         (if worker-owner "activate" "") 
@@ -67,14 +67,15 @@
       [:div {:style {:color (:color controller)}}
        (if controller (str (:player-name controller) "'s") nil)]
       [:div (:type development)]
+      [:div "Tax: " (:tax development)]
       [:div worker-owner]
-      [:div (str claimable-resources)]]]))
+      [:div "Claim: " claimable-resources]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must
 ; be kept in sync!
-(def hex-tile-size-px 100)
-(def hex-margin-px 4)
+(def hex-tile-size-px 180)
+(def hex-margin-px 5)
 (defn required-hex-grid-px-width
   [board]
   (let [board-cols (count (first board))]

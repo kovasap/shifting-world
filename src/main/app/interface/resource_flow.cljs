@@ -40,7 +40,7 @@
   [{:keys [development] :as tile}]
   (if (and development (:land-accumulation development))
    (update tile :claimable-resources
-    #(merge-with + % (:land-accumulation tile)))
+    #(merge-with + % ((:type (:land tile)) (:land-accumulation development))))
    tile))
 
 

@@ -20,7 +20,7 @@
              :background "white"
              :overflow   "visible"
              :text-align "left"
-             :top 35
+             :top 50
              :z-index    2
              :display    (if (get @dev-card-hover-state development)
                            "block"
