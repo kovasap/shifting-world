@@ -15,17 +15,6 @@
          (:board db) tile (get-current-player db))))
 
 
-(defn has-resource-sources?
-  [development board tile]
-  (let [adjacent-developments (filter #(not (nil? %))
-                                      (map :development
-                                           (get-adjacent-tiles board tile)))
-        inputs (reduce merge-with + (map :production adjacent-developments))]))
-    ; TODO make sure that the sum of all possible inputs contains the needed
-    ; inputs for this development
-
-
-; TODO add malli spec for development
 
 (defn accumulate-land-resources
   [{:keys [development] :as tile}]
@@ -36,36 +25,62 @@
 
 
 (defn get-neg-pairs [m] (into {} (for [[k v] m :when (neg? v)] [k v])))
+(defn get-pos-pairs [m] (into {} (for [[k v] m :when (pos? v)] [k v])))
   
 
+(defn resource-diff
+  "Returns [claimable resources minus resources to drain,
+            any remaining resources that need to be drained]."
+  [claimable-resources resources-to-drain]
+  (let [diff (merge-with +
+                         claimable-resources
+                         (get-neg-pairs resources-to-drain))]
+    [(into {}
+           (for [[resource amount] diff]
+             [resource (if (neg? amount) 0 amount)]))
+     (get-neg-pairs diff)]))
+
+
+(assert (= [{:wood 0, :grain 1} {:wood -5, :grain 1}]
+          (resource-diff {:wood 5 :grain 2} {:wood -10 :grain -1})))
+
+
 (defn drain-resources
-  "Returns the drained tile if successful, nil if the resources requested could
-  not be drained from the given tile.
-  Resources is a map of resources to quantities, with negative quantities to
-  drain."
-  [tile resources]
-  (let [drained-resources (merge-with + (:claimable-resources tile)
-                                     (get-neg-pairs resources))]
-    (if (get-neg-pairs drained-resources)
-      nil
-      drained-resources)))
-
-
+  [board candidate-tiles resources-to-drain]
+  (if (or (empty? candidate-tiles) (empty? (get-neg-pairs resources-to-drain)))
+    board
+    (let [{:keys [row-idx col-idx claimable-resources]} (first candidate-tiles)
+          [remaining-claimable-resources remaining-resources-to-drain]
+          (resource-diff claimable-resources resources-to-drain)]
+      (drain-resources (assoc-in board
+                         [row-idx col-idx :claimable-resources]
+                         remaining-claimable-resources)
+                       (rest candidate-tiles)
+                       remaining-resources-to-drain))))
+              
 (defn execute-production-chain
   "Returns an updated board."
-  [production-chain board tile]
-  (let [adj-tiles (get-adjacent-tiles board tile)
-        available-resources (reduce (partial merge-with +)
-                                    (map :claimable-resources adj-tiles))]
-    (if (drain-resources tile production-chain)
+  [production-chain
+   board
+   {:keys [row-idx col-idx claimable-resources] :as tile}]
+  ; The current tile is added to the front of this list.
+  (let [source-tiles     (conj (get-adjacent-tiles board tile) tile)
+        resource-balance (reduce (partial merge-with +)
+                           (conj (map :claimable-resources source-tiles)
+                                 production-chain))]
+    (if (get-neg-pairs resource-balance)
+      ; This chain is not possible - it consumes more resources than are
+      ; available!
+      board
       ; This production-chain is possible
       ; Go through each tile and remove as many resources as possible until the
       ; chain's resources are satisfied.
-      tile
-      ; This chain is not possible
-      board)))
-      
-
+      ; Also update the current tiles claimable resources.
+      (drain-resources
+        (assoc-in board [row-idx col-idx :claimable-resources]
+          (merge-with + (get-pos-pairs production-chain) claimable-resources))
+        source-tiles
+        production-chain))))
 
 (defn accumulate-production-resources
   "Remove consumed and add produced resources."
@@ -73,6 +88,9 @@
   ((apply comp (for [pc (:production-chains development)]
                  #(execute-production-chain pc % tile)))
    board))
+
+
+; TODO add malli spec for development
   
 (def developments
   [{:type        :settlement

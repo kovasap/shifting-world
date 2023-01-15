@@ -9,7 +9,7 @@
             [app.interface.players :refer [player-data next-player-idx reset-workers]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
-            [app.interface.board :refer [update-tiles]]
+            [app.interface.board :refer [update-tiles update-board-tiles]]
             [app.interface.developments
              :refer
              [accumulate-land-resources accumulate-production-resources]]
@@ -67,8 +67,7 @@
         (update :players #(mapv reset-workers %))
         (update :board update-tiles #(assoc % :worker-owner nil))
         (update :board update-tiles accumulate-land-resources)
-        (update :board update-tiles (partial (:board db)
-                                             accumulate-production-resources)))))
+        (update :board update-board-tiles accumulate-production-resources))))
 
 
 ;; -----------------------------------------------------------------------------
