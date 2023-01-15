@@ -26,6 +26,10 @@
    :owned-resources   (assoc (into {} (for [{:keys [type]} resources] [type 0]))
                             :stone 5)})
 
+(defn reset-workers
+  [player]
+  (assoc player :workers (:max-workers player)))
+
 (rf/reg-sub
   :players
   (fn [db _]

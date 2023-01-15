@@ -6,10 +6,13 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]
             [reagent.core :as r]
-            [app.interface.players :refer [player-data next-player-idx]]
+            [app.interface.players :refer [player-data next-player-idx reset-workers]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
             [app.interface.board :refer [update-tiles]]
+            [app.interface.developments
+             :refer
+             [accumulate-land-resources accumulate-production-resources]]
             [app.interface.map-generation :refer [setup-board]]
             [app.interface.orders :refer [orders]]
             [cljs.pprint]
@@ -60,18 +63,12 @@
   (fn [db [_]]
     (-> db
         ; TODO check if orders have been fulfilled and end the game if so.
-        (update :players
-                (fn [players]
-                  (into []
-                        (for [player players]
-                          (assoc player :workers (:max-workers player))))))
-        (update :board update-tiles (fn [tile] (assoc tile :worker-owner nil)))
-        (update :board
-                update-tiles
-                (fn [{:keys [development] :as tile}]
-                  (if (and development (:resource-accumulation development))
-                    ((:resource-accumulation development) tile)
-                    tile))))))
+        ; Give everyone their workers back.
+        (update :players #(mapv reset-workers %))
+        (update :board update-tiles #(assoc % :worker-owner nil))
+        (update :board update-tiles accumulate-land-resources)
+        (update :board update-tiles (partial (:board db)
+                                             accumulate-production-resources)))))
 
 
 ;; -----------------------------------------------------------------------------

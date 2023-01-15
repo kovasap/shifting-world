@@ -19,45 +19,89 @@
   [development board tile]
   (let [adjacent-developments (filter #(not (nil? %))
                                       (map :development
-                                           (get-adjacent-tiles board tile)))]
+                                           (get-adjacent-tiles board tile)))
+        inputs (reduce merge-with + (map :production adjacent-developments))]))
     ; TODO make sure that the sum of all possible inputs contains the needed
     ; inputs for this development
-    (reduce merge-with + (map :production adjacent-developments))))
 
 
 ; TODO add malli spec for development
+
+(defn accumulate-land-resources
+  [{:keys [development] :as tile}]
+  (if (and development (:land-accumulation development))
+    (update tile :claimable-resources
+      #(merge-with + % (:land-accumulation tile)))
+    tile))
+
+
+(defn get-neg-pairs [m] (into {} (for [[k v] m :when (neg? v)] [k v])))
   
+
+(defn drain-resources
+  "Returns the drained tile if successful, nil if the resources requested could
+  not be drained from the given tile.
+  Resources is a map of resources to quantities, with negative quantities to
+  drain."
+  [tile resources]
+  (let [drained-resources (merge-with + (:claimable-resources tile)
+                                     (get-neg-pairs resources))]
+    (if (get-neg-pairs drained-resources)
+      nil
+      drained-resources)))
+
+
+(defn execute-production-chain
+  "Returns an updated board."
+  [production-chain board tile]
+  (let [adj-tiles (get-adjacent-tiles board tile)
+        available-resources (reduce (partial merge-with +)
+                                    (map :claimable-resources adj-tiles))]
+    (if (drain-resources tile production-chain)
+      ; This production-chain is possible
+      ; Go through each tile and remove as many resources as possible until the
+      ; chain's resources are satisfied.
+      tile
+      ; This chain is not possible
+      board)))
+      
+
+
+(defn accumulate-production-resources
+  "Remove consumed and add produced resources."
+  [board {:keys [development] :as tile}]
+  ((apply comp (for [pc (:production-chains development)]
+                 #(execute-production-chain pc % tile)))
+   board))
   
 (def developments
   [{:type        :settlement
     :letter      "S"
     :description "Accumulates resources for future collection/processing."
     :is-legal-placement? (fn [db tile] (is-legal-placement?-shared db tile))
-    :use         (fn [db instance tile] db
-                   #_(update-resources db
-                                       (:current-player-idx db)
-                                       (:production instance)))
+    :land-accumulation {:forest {:wood 1}
+                        :plains {:food 1}
+                        :water {:water 1}}
+    :production-chains []
     :resource-accumulation (fn [tile]
                              (update tile :claimable-resources
                                #(merge-with + % (:production (:land tile)))))
-    :place       (fn [db instance])
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}
     :production  {}}
    {:type        :mill
     :letter      "M"
-    :description "Produces planks from wood OR wheat from grain."
+    :description "Produces planks from wood AND/OR flour from grain."
+    :land-accumulation {}
+    :production-chains [{:wood -1 :planks 1}
+                        {:grain -1 :flour 1}]
     :is-legal-placement? (fn [db tile]
                            (and (= :plains (:type (:land tile)))
                              (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance tile]
-                   ; Check for adjacent source of planks or wheat
-                   (if (has-resource-sources? instance (:board db) tile)
-                     ; TODO update personal resource count
-                     db
-                     (:assoc db :message "Broken production chain!")))
-    :place       (fn [db instance])
+    :resource-accumulation (fn [tile]
+                             (update tile :claimable-resources
+                               #(merge-with + % (:production (:land tile)))))
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}
@@ -67,8 +111,6 @@
     :is-legal-placement? (fn [db tile]
                            (and (= :plains (:type (:land tile)))
                              (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance tile] db)
-    :place       (fn [db instance])
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}
@@ -85,7 +127,6 @@
                                          (remove #(= % current-player) ps))))
                          (update-resources (:current-player-idx db)
                                            (:production instance)))))
-    :place       (fn [db instance])
     :max         3
     :cost        {:stone -5}
     :tax         {}
@@ -99,17 +140,6 @@
     :max         2
     :cost        {:wood -1}
     :tax         {:sand -1}
-    :production  {}}
-   {:type        :crossroads
-    :description "Use all adjacent tiles that have not been used yet."
-    :is-legal-placement? (fn [db tile]
-                           (and (= :plains (:type (:land tile)))
-                                (is-legal-placement?-shared db tile)))
-    :use         (fn [db instance tile]
-                   (assoc db :message "Terraformer not implemented yet"))
-    :max         3
-    :cost        {:wood -1}
-    :tax         {:stone -1}
     :production  {}}
    {:type        :terraformer
     :description "Change the land type of a tile"
@@ -139,7 +169,8 @@
                 {}
                 (:tax development))
           [cost-payable updated-db] (update-resources-with-check
-                                      db (:current-player-idx db) tax)]
+                                      db (:current-player-idx db) tax)
+          use-fn (if (:use development) (:use development) identity)]
       (cond
         worker-owner (assoc db
                        :message (str "Worker from "
@@ -153,7 +184,7 @@
                          (assoc-in [:board row-idx col-idx :worker-owner]
                                    current-player-name)
                          (claim-resources (:current-player-idx db) tile)
-                         ((:use development) development tile))
+                         (use-fn development tile))
         :else        updated-db))))
 
 (defn stop-placing
