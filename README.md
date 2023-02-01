@@ -1,26 +1,39 @@
 # Terraforming Catan!
 
-## Design
+## Game Flow
 
-A worker placement game where workers are all placed on a common game board.
-Workers placed on empty tiles can develop them.
-In future turns workers placed on developments can take the actions that
-development allows.
+### Phase 1: Drafting blueprints
 
-Whenever an opponent uses a development that you built, they need to pay you a
-tax (in resources).
+Each player draws 5 blueprint cards, each of which suggests a building type they
+can build.
+Then these are drafted around the table, with the last card in the draft removed
+from the game (so everyone ends up with 4 blueprints).
+
+This still needs to be implemented.
+
+### Phase 2: Gameplay
+
+Players take turns placing a worker on the board, either spending resources to
+build a blueprint or taking the action a currently built building allows them to
+take.
+If any resources are accumulated on the tile with the worker, the player takes
+them into their supply.
+Doing this on an opponents tile means you will pay a tax of X% of the resources
+on the tile to them.
+
+Once everyone has placed all their workers, this rounds ends, all tiles
+accumulate resources, and a new round starts.
+
+### Phase 3: Game End
+
+Once a player has completed 3 orders, the game ends.
 
 ### Stuff to Add
 
- - Randomize which buildings are available for each game, like in against the
-   storm.
- - Production Chains.
-   Buildings build next to each other can "chain" resources, converting raw
-   resources into refined ones.
- - Make it so that when you build a library a new deck of cards is created for
-   that library specifically.
-   You as the builder get to look at (and reorder?) the top 3 cards (or the
-   whole deck?).
+ - A tile selection system to use for all selection, use this for the
+   terraformer tile selection.
+ - A pretty background
+ - Make tax a percent of the resources instead of a flat value.
  - Add a deck of global effects (weather?) from which a new card is flipped each
    round.
    Each card has an effect that changes parameters across the whole game.

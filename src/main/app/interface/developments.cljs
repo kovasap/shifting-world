@@ -31,6 +31,23 @@
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}}
+   {:type        :village
+    :letter      "V"
+    :description "All adjacent settlements accumulate one more resource per turn."
+    :is-legal-placement? (fn [db tile] (is-legal-placement?-shared db tile))
+    :production-chains []
+    :max         6
+    :cost        {:wood -1}
+    :tax         {:food -1}}
+   {:type        :hideout
+    :letter      "H"
+    :description "All adjacent settlements accumulate one less resource per
+                 turn (bandits are stealing them)."
+    :is-legal-placement? (fn [db tile] (is-legal-placement?-shared db tile))
+    :production-chains []
+    :max         6
+    :cost        {:wood -1}
+    :tax         {:food -1}}
    {:type        :mill
     :letter      "M"
     :description "Produces planks from wood AND/OR flour from grain."
@@ -43,8 +60,21 @@
     :max         6
     :cost        {:wood -1}
     :tax         {:food -1}}
+   {:type        :oven
+    :letter      "O"
+    :description "Produces charcoal from wood AND/OR bread from flour"
+    :land-accumulation {}
+    :production-chains [{:wood -1 :charcoal 1}
+                        {:flour -1 :bread 1}]
+    :is-legal-placement? (fn [db tile]
+                           (and #_(= :plains (:type (:land tile)))
+                             (is-legal-placement?-shared db tile)))
+    :max         6
+    :cost        {:wood -1}
+    :tax         {:food -1}}
    {:type        :trading-post
-    :description "Trade any resources 2 to 1."
+    :description "Trade resources 2 to 1 according to what trades are available
+                 from a rotating trading wheel of options (not yet implemented)."
     :is-legal-placement? (fn [db tile]
                            (and (= :plains (:type (:land tile)))
                              (is-legal-placement?-shared db tile)))
@@ -67,7 +97,8 @@
     :cost        {:stone -5}
     :tax         {}}
    {:type        :library
-    :description "Draw 3 cards, discard 2"
+    :description "Look at the top two cards of the blueprint deck and take one,
+                 putting the other on the bottom."
     :is-legal-placement? (fn [db tile]
                            (and (= :mountain (:type (:land tile)))
                                 (is-legal-placement?-shared db tile)))
@@ -76,7 +107,7 @@
     :cost        {:wood -1}
     :tax         {:sand -1}}
    {:type        :terraformer
-    :description "Change the land type of a tile"
+    :description "Change the land type of any tile"
     :is-legal-placement? (fn [db tile]
                            (and (= :sand (:type (:land tile)))
                                 (is-legal-placement?-shared db tile)))

@@ -2,15 +2,21 @@
   (:require [re-frame.core :as rf]))
 
 (def orders
-  [{:title "Claim land"
+  [{:title "Landlord"
     :points 2
     :description "Own at least 10 tiles."}
-   {:title "Lumberjack"
-    :points 1
-    :description "Turn in 10 planks."}
-   {:title "Stonecutter"
-    :points 1
-    :description "Turn in 10 stone blocks."}
+   {:title "Sampler"
+    :points 2
+    :description "Turn in one of 7 different resources."}
+   {:title "Common man"
+    :points 2
+    :description "Turn in 15 of the same basic resource."}
+   {:title "Aristocrat"
+    :points 2
+    :description "Turn in 5 of the same luxury resource."}
+   {:title "Artisan"
+    :points 2
+    :description "Turn in 5 of the same intermediate resource."}
    {:title "Jeweler"
     :points 1
     :description "Turn in 1 perfect gem."}])

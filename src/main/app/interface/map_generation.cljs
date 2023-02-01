@@ -114,9 +114,10 @@
      W   W   W   W   F   F   F   F   F   F
      W   W   S   S   F   F   F   F   F   F"))
 
+; TODO have each tile start with one resource of it's type
 (def manual-board
   (parse-board-str
-    "Fw1 M   M   F   F   F   F
+    "Fw1 M   M   Fw1 Fw1 Fw1 Fw1
      M   W   MS  FS  F   Fu1 F
      W   M   F   F   F   F   F
      W   M   M   F   F   F   F
