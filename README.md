@@ -21,6 +21,9 @@ them into their supply.
 Doing this on an opponents tile means you will pay a tax of X% of the resources
 on the tile to them.
 
+You can also place your worker on an order to claim if, if you meet the
+requirements and can pay for it.
+
 Once everyone has placed all their workers, this rounds ends, all tiles
 accumulate resources, and a new round starts.
 

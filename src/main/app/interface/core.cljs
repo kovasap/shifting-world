@@ -6,7 +6,7 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]
             [reagent.core :as r]
-            [app.interface.players :refer [player-data next-player-idx reset-workers]]
+            [app.interface.players :refer [next-player-idx reset-workers]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
             [app.interface.board :refer [update-tiles]]
@@ -15,6 +15,9 @@
              [accumulate-land-resources accumulate-production-resources
               update-board-tiles]]
             [app.interface.map-generation :refer [setup-board]]
+            [app.interface.developments :refer [make-opening-hand]]
+            [app.interface.config :refer [debug]]
+            [app.interface.resources :refer [resources]]
             [app.interface.orders :refer [orders]]
             [cljs.pprint]
             [taoensso.timbre :as log]))
@@ -27,6 +30,20 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Setup
+
+(defn player-data
+  [i player-name]
+  {:player-name     player-name
+   :index           i
+   :color           (get ["blue" "red" "purple" "black"] i)
+   :workers         2
+   :max-workers     2
+   :blueprints      (make-opening-hand)
+   :owned-resources (if debug
+                      {:wood 2 :stone 5}
+                      (assoc (into {}
+                                   (for [{:keys [type]} resources] [type 0]))
+                        :stone 5))})
 
 (rf/reg-event-db
   :game/setup

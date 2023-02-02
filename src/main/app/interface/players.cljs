@@ -1,7 +1,5 @@
 (ns app.interface.players
-  (:require [re-frame.core :as rf]
-            [app.interface.config :refer [debug]]
-            [app.interface.resources :refer [resources]]))
+  (:require [re-frame.core :as rf]))
 
 (defn update-resources
   [db player-idx resource-delta]
@@ -16,18 +14,6 @@
                (get-in updated [:players player-idx :owned-resources])))
       [false (assoc db :message "Cannot pay the cost!")]
       [true updated])))
-
-(defn player-data
-  [i player-name]
-  {:player-name player-name
-   :index i
-   :color (get ["blue" "red" "purple" "black"] i)
-   :workers 2
-   :max-workers 2
-   :owned-resources   (if debug
-                        {:wood 2 :stone 5}
-                        (assoc (into {} (for [{:keys [type]} resources] [type 0]))
-                              :stone 5))})
 
 (defn reset-workers
   [player]

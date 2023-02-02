@@ -6,6 +6,7 @@
             [app.interface.view.orders :refer [order-view]]
             [app.interface.view.players :refer [player-card-view]]
             [app.interface.developments :refer [developments]]
+            [app.interface.view.developments :refer [development-hand]]
             [cljs.pprint]))
 
 (defn main
@@ -32,26 +33,7 @@
        [:br]
        [:div @(rf/subscribe [:message])]
        [:br]
-       (doall
-         (for [development developments
-               :let        [n        (name (:type development))
-                            existing @(rf/subscribe [:developments
-                                                     (:type development)])
-                            placing-current (= (:type placing)
-                                               (:type development))]]
-           [:button.btn.btn-outline-primary
-            {:key      n ; Required by react (otherwise we get a warning).
-             :style    {:font-weight (if placing-current
-                                       "bold"
-                                       "normal")}
-             :on-click #(if placing-current
-                          (rf/dispatch [:development/stop-placing])
-                          (rf/dispatch [:development/start-placing
-                                        (:type development)
-                                        current-player-name]))}
-            [:div "Place " n " " (count existing) "/" (:max development)]
-            [:div "(cost " (:cost development) ")"]
-            [:div (:description development)]]))
+       (development-hand)
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
         "End Turn"]
        [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}

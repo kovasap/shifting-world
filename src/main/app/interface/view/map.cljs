@@ -2,7 +2,7 @@
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
             [app.interface.config :refer [debug]]
-            [app.interface.view.developments :refer [development-card-view]]))
+            [app.interface.view.developments :refer [development-desc-view]]))
 
 
 ; See resources/public/css/board.css for supporting css.
@@ -58,7 +58,7 @@
      ; Note that the "clip-path" property that makes the hexagon shapes applies
      ; to all child divs, making it impossible for them to overflow their
      ; parent.
-     (development-card-view development)
+     (development-desc-view development row-idx col-idx)
      [:div {:style {:position "absolute" :padding-top "10px" :width "100%"}}
       [:div {:style {:display (if debug "block" "none")}}
        row-idx

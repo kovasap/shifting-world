@@ -82,7 +82,8 @@
     :cost        {:wood -1}
     :tax         {:food -1}}
    {:type        :capitol
-    :description "Take starting player and get 1 water."
+    :description "Take starting player and get 1 water. Worth 2 pts at the end
+                 of the game."
     :is-legal-placement? (fn [db tile] (nil? (:development tile)))
     :use         (fn [db instance tile]
                    (let [current-player (get-current-player db)]
@@ -116,6 +117,15 @@
     :max         3
     :cost        {:wood -1}
     :tax         {:stone -1}}])
+
+
+(def opening-hand-size 4)
+
+(defn make-opening-hand
+  []
+  (conj (take opening-hand-size (shuffle developments))
+        (get-only developments :type :settlement)))
+        
 
 
 (defn claim-resources
