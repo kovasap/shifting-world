@@ -18,6 +18,9 @@
 
 ; TODO add malli spec for development
   
+; TODO make all the functions in this list instead into reframe dispatches so
+; that we can serialize this to edn to save state for the game (functions can't
+; be serialized)
 (def developments
   [{:type        :settlement
     :letter      "S"
