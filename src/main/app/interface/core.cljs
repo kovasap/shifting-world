@@ -20,12 +20,32 @@
             [app.interface.resources :refer [resources]]
             [app.interface.orders :refer [orders]]
             [cljs.pprint]
+            [cljs.core.async :as async :refer (<! >! put! chan)]
+            [taoensso.sente  :as sente :refer (cb-success?)]
             [taoensso.timbre :as log]))
 
 (rf/reg-sub
   :db-no-board
   (fn [db _]
     (dissoc db :board)))
+
+
+(def ?csrf-token
+  (when-let [el (.getElementById js/document "sente-csrf-token")]
+    (.getAttribute el "data-csrf-token")))
+
+
+(let [{:keys [chsk ch-recv send-fn state]}
+      (sente/make-channel-socket-client!
+       "/chsk" ; Note the same path as before
+       ?csrf-token
+       {:type :auto})] ; e/o #{:auto :ajax :ws}
+       
+
+  (def chsk       chsk)
+  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send! send-fn) ; ChannelSocket's send API fn
+  (def chsk-state state))   ; Watchable, read-only atom
 
 
 ;; ----------------------------------------------------------------------------

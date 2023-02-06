@@ -2,6 +2,7 @@
  :deps {clj-http/clj-http {:mvn/version "3.12.3"}
         cljs-ajax/cljs-ajax {:mvn/version "0.8.4"}
         com.taoensso/timbre {:mvn/version "5.2.1"}
+        com.taoensso/sente {:mvn/version "1.17.0"}
         day8.re-frame/http-fx {:mvn/version "0.2.4"}
         http-kit/http-kit {:mvn/version "2.5.3"}
         metosin/reitit {:mvn/version "0.5.18"}
