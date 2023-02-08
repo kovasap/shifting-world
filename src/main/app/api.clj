@@ -46,44 +46,21 @@
 
 
 (defn landing-pg-handler [] ;  [ring-req]
-  #p (hiccup/html
-       [:h1 "Sente reference example"]
-       (let [csrf-token
-             ;; (:anti-forgery-token ring-req) ; Also an option
-             (force ring.middleware.anti-forgery/*anti-forgery-token*)]
+  (hiccup/html
+    (let [csrf-token
+          ;; (:anti-forgery-token ring-req) ; Also an option
+          (force ring.middleware.anti-forgery/*anti-forgery-token*)]
 
-         [:div#sente-csrf-token {:data-csrf-token csrf-token}])
-       [:p "An Ajax/WebSocket" [:strong " (random choice!)"] " has been configured for this example"]
-       [:hr]
-       [:p [:strong "Step 1: "] " try hitting the buttons:"]
-       [:p
-        [:button#btn1 {:type "button"} "chsk-send! (w/o reply)"]
-        [:button#btn2 {:type "button"} "chsk-send! (with reply)"]]
-       [:p
-        [:button#btn3 {:type "button"} "Test rapid server>user async pushes"]
-        [:button#btn4 {:type "button"} "Toggle server>user async broadcast push loop"]]
-       [:p
-        [:button#btn5 {:type "button"} "Disconnect"]
-        [:button#btn6 {:type "button"} "Reconnect"]]
-       ;;
-       [:p [:strong "Step 2: "] " observe std-out (for server output) and below (for client output):"]
-       [:textarea#output {:style "width: 100%; height: 200px;"}]
-       ;;
-       [:hr]
-       [:h2 "Step 3: try login with a user-id"]
-       [:p  "The server can use this id to send events to *you* specifically."]
-       [:p
-        [:input#input-login {:type :text :placeholder "User-id"}]
-        [:button#btn-login {:type "button"} "Secure login!"]]
-       ;;
-       [:hr]
-       [:h2 "Step 4: want to re-randomize Ajax/WebSocket connection type?"]
-       [:p "Hit your browser's reload/refresh button"]
-       [:script {:src "main.js"}])) ; Include our cljs target
+      [:div#sente-csrf-token {:data-csrf-token csrf-token}])
+    [:div#app]
+    [:script {:src "/js/compiled/base.js"}]))
 
 
 (def ^:private api-routes
   [["/" {:get (fn [_] (ok (landing-pg-handler)))}]
+   ; https://github.com/metosin/reitit/blob/master/doc/ring/static.md#internal-routes
+   ; Used to serve all the js/css files.
+   ["/*" (ring/create-resource-handler)]
    ["/debug" {:swagger {:tags ["debug"]}}
     ["" {:name :api/debug
          :get {:handler reveal-information}
@@ -112,6 +89,7 @@
                              :version "1.0.0"}}
             :handler (swagger/create-swagger-handler)}}]]
    {:exception pretty/exception
+    :conflicts (constantly nil)
     :validate rrs/validate
     ::rs/explain expound/expound-str
     :data {:coercion reitit.coercion.spec/coercion
@@ -133,7 +111,7 @@
    (router)
    (ring/routes
     (swagger-ui/create-swagger-ui-handler
-     {:path "/"
+     {:path "/swagger"
       :config {:validatorUrl nil
                :operationsSorter "alpha"}})
     (ring/redirect-trailing-slash-handler {:method :strip})
