@@ -41,6 +41,11 @@ Once a player has completed 3 orders, the game ends.
    round.
    Each card has an effect that changes parameters across the whole game.
 
+ - Add ability to redirect resources along production chains by investing
+   resources in a building.
+   the building with the most resources invested will take from buildings first
+   when accumulating at the end of a rounds.
+
 ## Setup
 
 First, install dependencies:
