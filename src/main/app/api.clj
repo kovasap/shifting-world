@@ -47,13 +47,21 @@
 
 (defn landing-pg-handler [] ;  [ring-req]
   (hiccup/html
-    (let [csrf-token
-          ;; (:anti-forgery-token ring-req) ; Also an option
-          (force ring.middleware.anti-forgery/*anti-forgery-token*)]
+    [:head
+     [:title "Game"]
+     [:meta {:charset "UTF-8"}]
+     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+     [:link {:rel "stylesheet" :href "css/board.css"}]
+     [:link {:rel "stylesheet"
+             :href "node_modules/bootstrap/dist/css/bootstrap.min.css"}]]
+    [:body
+      (let [csrf-token
+            ;; (:anti-forgery-token ring-req) ; Also an option
+            (force ring.middleware.anti-forgery/*anti-forgery-token*)]
 
-      [:div#sente-csrf-token {:data-csrf-token csrf-token}])
-    [:div#app]
-    [:script {:src "/js/compiled/base.js"}]))
+        [:div#sente-csrf-token {:data-csrf-token csrf-token}])
+      [:div#app]
+      [:script {:src "/js/compiled/base.js"}]]))
 
 
 (def ^:private api-routes
