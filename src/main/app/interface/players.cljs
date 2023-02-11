@@ -26,7 +26,9 @@
 
 (defn get-current-player
   [{:keys [players current-player-idx] :as db}]
-  (nth players current-player-idx))
+  (if (nil? players)
+    nil
+    (nth players current-player-idx)))
 
 (rf/reg-sub
   :current-player

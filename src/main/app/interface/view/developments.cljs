@@ -37,7 +37,7 @@
         current-player-name (:player-name @(rf/subscribe [:current-player]))
         placing  @(rf/subscribe [:placing])
         placing-current (= (:type placing) (:type development))]
-    [:div {:key   n ; Required by react (otherwise we get a warning).
+    [:div {:key   (str n current-player-name) ; Required by react (otherwise we get a warning).
            :style {:background "white" :text-align "left"
                    :width "150px"
                    :flex 1
