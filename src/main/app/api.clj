@@ -66,9 +66,6 @@
 
 (def ^:private api-routes
   [["/" {:get (fn [_] (ok (landing-pg-handler)))}]
-   ; https://github.com/metosin/reitit/blob/master/doc/ring/static.md#internal-routes
-   ; Used to serve all the js/css files.
-   ["/*" (ring/create-resource-handler)]
    ["/debug" {:swagger {:tags ["debug"]}}
     ["" {:name :api/debug
          :get {:handler reveal-information}
@@ -118,6 +115,9 @@
   (ring/ring-handler
    (router)
    (ring/routes
+    ; https://github.com/metosin/reitit/blob/master/doc/ring/static.md#internal-routes
+    ; Used to serve all the js/css files.
+    (ring/create-resource-handler {:path "/"})
     (swagger-ui/create-swagger-ui-handler
      {:path "/swagger"
       :config {:validatorUrl nil
@@ -132,7 +132,7 @@
   :start
   (let [origins #".*"]
     (log/info (format "Allowed Origins: %s" origins))
-    (log/info (format "Find the backend with swagger documentation at %s" config/api-location))
+    (log/info (format "Find the backend with swagger documentation at %s%s" config/api-location "/swagger"))
     (server/run-server
      (wrap-cors (app)
                 :access-control-allow-origin origins

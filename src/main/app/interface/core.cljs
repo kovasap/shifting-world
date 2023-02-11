@@ -30,22 +30,27 @@
     (dissoc db :board)))
 
 
-#_(def ?csrf-token
-    (when-let [el (.getElementById js/document "sente-csrf-token")]
-      (.getAttribute el "data-csrf-token")))
+; Uncomment when deploying and cljs is being served from the clj server.
+(def ?csrf-token
+  (when-let [el (.getElementById js/document "sente-csrf-token")]
+    (.getAttribute el "data-csrf-token")))
 
 
-#_(let [{:keys [chsk ch-recv send-fn state]}
-        (sente/make-channel-socket-client!
-         "/chsk" ; Note the same path as before
-         ?csrf-token
-         {:type :auto})] ; e/o #{:auto :ajax :ws}
+(let [{:keys [chsk ch-recv send-fn state]}
+      (sente/make-channel-socket-client!
+       "/chsk" ; Note the same path as before
+       ?csrf-token
+       {:type :auto
+        :packer :edn
+        :protocol :http
+        :host "localhost"
+        :port config/api-port})] ; e/o #{:auto :ajax :ws}
        
 
-    (def chsk       chsk)
-    (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
-    (def chsk-send! send-fn) ; ChannelSocket's send API fn
-    (def chsk-state state))   ; Watchable, read-only atom
+  (def chsk       chsk)
+  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send! send-fn) ; ChannelSocket's send API fn
+  (def chsk-state state))   ; Watchable, read-only atom
 
 
 ;; ----------------------------------------------------------------------------
