@@ -6,6 +6,7 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]
             [reagent.core :as r]
+            [app.interface.sente :refer [chsk-send!]]
             [app.interface.players :refer [next-player-idx reset-workers]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
@@ -20,37 +21,12 @@
             [app.interface.resources :refer [resources]]
             [app.interface.orders :refer [orders]]
             [cljs.pprint]
-            [cljs.core.async :as async :refer (<! >! put! chan)]
-            [taoensso.sente  :as sente :refer (cb-success?)]
             [taoensso.timbre :as log]))
 
 (rf/reg-sub
   :db-no-board
   (fn [db _]
     (dissoc db :board)))
-
-
-; Uncomment when deploying and cljs is being served from the clj server.
-(def ?csrf-token
-  (when-let [el (.getElementById js/document "sente-csrf-token")]
-    (.getAttribute el "data-csrf-token")))
-
-
-(let [{:keys [chsk ch-recv send-fn state]}
-      (sente/make-channel-socket-client!
-       "/chsk" ; Note the same path as before
-       ?csrf-token
-       {:type :auto
-        :packer :edn
-        :protocol :http
-        :host "localhost"
-        :port config/api-port})] ; e/o #{:auto :ajax :ws}
-       
-
-  (def chsk       chsk)
-  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
-  (def chsk-send! send-fn) ; ChannelSocket's send API fn
-  (def chsk-state state))   ; Watchable, read-only atom
 
 
 ;; ----------------------------------------------------------------------------
@@ -73,6 +49,7 @@
 (rf/reg-event-db
   :game/setup
   (fn [db _]
+    (chsk-send! [:testing {:my "data"}] 5000 (fn [cb-reply] (prn "yes")))
     (-> db
      (setup-board)
      (assoc

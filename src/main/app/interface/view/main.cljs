@@ -3,6 +3,7 @@
             [reagent.core :as r]
             [clojure.string :as st]
             ; [ring.middleware.anti-forgery]
+            [app.interface.sente :refer [chsk-state]]
             [app.interface.view.map :refer [board-view]]
             [app.interface.view.orders :refer [order-view]]
             [app.interface.view.players :refer [player-card-view]]
@@ -16,6 +17,7 @@
   (let [players     @(rf/subscribe [:players])
         db  @(rf/subscribe [:db-no-board])
         orders @(rf/subscribe [:orders])]
+    [:div @chsk-state]
     [:div.container
      #_(let [csrf-token (force ring.middleware.anti-forgery/*anti-forgery-token*)]
          [:div#sente-csrf-token {:data-csrf-token csrf-token}])
