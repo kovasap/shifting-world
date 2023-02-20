@@ -49,7 +49,6 @@
 (rf/reg-event-db
   :game/setup
   (fn [db _]
-    (chsk-send! [:testing {:my "data"}] 5000 (fn [cb-reply] (prn "yes")))
     (-> db
      (setup-board)
      (assoc
@@ -75,6 +74,8 @@
 (rf/reg-event-db
   :end-turn
   (fn [db [_]]
+    (chsk-send! [:game/sent-state {:db db}] 5000
+                (fn [cb-reply] (prn "synced state")))
     (-> db
       (assoc :current-player-idx (next-player-idx db)))))
 

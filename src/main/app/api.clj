@@ -92,8 +92,8 @@
     (when ?reply-fn
       (?reply-fn {:umatched-event-as-echoed-from-server event}))))
 
-(defmethod -event-msg-handler :testing
-  [ev-msg] (log/infof ev-msg))
+(defmethod -event-msg-handler :game/send-state
+  [ev-msg] (log/infof "Got game state: %s" (:db (:?data ev-msg))))
 
 ;;;; Sente event router (our `event-msg-handler` loop)
 
