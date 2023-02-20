@@ -21,7 +21,7 @@
         ring/ring-defaults {:mvn/version "0.3.3"}
         ; See https://github.com/weavejester/hashp/pull/1
         com.gfredericks/user.clj {:mvn/version "0.1.0"}
-        hashp/hashp {:mvn/version "0.2.1"}
+        hashp/hashp {:mvn/version "0.2.2"}
         io.github.kovasap/perlin2d {:git/sha "bd6e8d60b83bdc2a8730dbd328c2899a90604773"}
         thheller/shadow-cljs {:mvn/version "2.19.2"}}
 

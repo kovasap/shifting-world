@@ -43,6 +43,13 @@
   (def connected-uids connected-uids)) ; Watchable, read-only atom
 
 
+;; We can watch this atom for changes if we like
+(add-watch connected-uids :connected-uids
+  (fn [_ _ old new]
+    (when (not= old new)
+      (log/infof "Connected uids change: %s" new))))
+
+
 
 (defn- reveal-information [request]
   (ok {:headers (:headers request)
@@ -92,8 +99,15 @@
     (when ?reply-fn
       (?reply-fn {:umatched-event-as-echoed-from-server event}))))
 
-(defmethod -event-msg-handler :game/send-state
-  [ev-msg] (log/infof "Got game state: %s" (:db (:?data ev-msg))))
+(defmethod -event-msg-handler :game/sync-state
+  [ev-msg]
+  (let [db (:db (:?data ev-msg))]
+    (log/infof "Got game state.  Current player: %s" (:current-player-idx db))
+    (doseq [uid (:any @connected-uids)]
+     (chsk-send! uid
+      [:game/broadcast-state
+       {:db db
+        :to-whom uid}]))))
 
 ;;;; Sente event router (our `event-msg-handler` loop)
 

@@ -6,7 +6,7 @@
             [goog.dom :as gdom]
             [re-frame.core :as rf]
             [reagent.core :as r]
-            [app.interface.sente :refer [chsk-send!]]
+            [app.interface.sente :refer [send-game-state-to-server!]]
             [app.interface.players :refer [next-player-idx reset-workers]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
@@ -74,10 +74,10 @@
 (rf/reg-event-db
   :end-turn
   (fn [db [_]]
-    (chsk-send! [:game/sent-state {:db db}] 5000
-                (fn [cb-reply] (prn "synced state")))
-    (-> db
-      (assoc :current-player-idx (next-player-idx db)))))
+    (let [new-db (-> db
+                   (assoc :current-player-idx (next-player-idx db)))]
+      (send-game-state-to-server! new-db)
+      new-db)))
 
 (rf/reg-event-db
   :end-round
