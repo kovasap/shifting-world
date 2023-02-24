@@ -1,6 +1,7 @@
 (ns app.interface.developments
   (:require
    [re-frame.core :as rf]
+   [day8.re-frame.undo :as undo :refer [undoable]] 
    [app.interface.players
     :refer
     [get-current-player update-resources update-resources-with-check]]
@@ -144,6 +145,7 @@
  
 (rf/reg-event-db
   :development/use
+  (undoable "Development Use")
   (fn [db [_ development {:keys [row-idx col-idx worker-owner] :as tile}]]
     (let [current-player-name (:player-name @(rf/subscribe [:current-player]))
           tax (if (= current-player-name (:owner development))
@@ -179,6 +181,7 @@
 
 (rf/reg-event-db
   :development/start-placing
+  (undoable "Development Placement Start")
   (fn [db [_ development-type placer]]
     (let [development (get-only developments :type development-type)]
       (-> db
@@ -197,6 +200,7 @@
 
 (rf/reg-event-db
   :development/place
+  (undoable "Development Placement")
   (fn [db
        [_
         {:keys [row-idx col-idx legal-placement? claimable-resources] :as tile}]]

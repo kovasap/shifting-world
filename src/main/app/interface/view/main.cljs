@@ -11,6 +11,17 @@
             [app.interface.view.developments :refer [development-hand]]
             [cljs.pprint]))
 
+(defn undo-button
+  []
+  ; only enable the button when there's undos
+  (let [undos? (rf/subscribe [:undos?])]
+    (fn []
+      [:button.btn.btn-outline-primary
+       {:disabled (not @undos?)
+        :on-click #(rf/dispatch [:undo])}
+       "Undo"])))
+
+
 (defn main
   "Main view for the application."
   []
@@ -24,6 +35,7 @@
      [:h1 "Welcome to Terraforming Catan!"
       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
        "Setup Game"]
+      [undo-button]
       [:br]
       [:br]
       [:div {:style {:display  "grid"

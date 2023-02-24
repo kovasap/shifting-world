@@ -14,6 +14,7 @@
         org.clojure/data.csv {:mvn/version "1.0.1"}
         org.clojure/tools.logging {:mvn/version "1.2.4"}
         re-frame/re-frame {:mvn/version "1.2.0"}
+        day8.re-frame/undo {:mvn/version "0.3.3"}
         reagent/reagent {:mvn/version "1.1.1"}
         ring-cors/ring-cors {:mvn/version "0.1.13"}
         ring-middleware-format/ring-middleware-format {:mvn/version "0.7.5"}

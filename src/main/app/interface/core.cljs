@@ -3,6 +3,7 @@
             [ajax.core :as ajax]
             [app.config :as config]
             [day8.re-frame.http-fx]
+            [day8.re-frame.undo :as undo :refer [undoable]]  
             [goog.dom :as gdom]
             [re-frame.core :as rf]
             [reagent.core :as r]
@@ -73,6 +74,7 @@
 
 (rf/reg-event-db
   :end-turn
+  (undoable "Turn End")
   (fn [db [_]]
     (let [new-db (-> db
                    (assoc :current-player-idx (next-player-idx db)))]
@@ -81,6 +83,7 @@
 
 (rf/reg-event-db
   :end-round
+  (undoable "Round End")
   (fn [db [_]]
     (-> db
         ; TODO check if orders have been fulfilled and end the game if so.
@@ -89,48 +92,6 @@
         (update :board update-tiles #(assoc % :worker-owner nil))
         (update :board update-tiles accumulate-land-resources)
         (update :board update-board-tiles accumulate-production-resources))))
-
-
-;; -----------------------------------------------------------------------------
-;; Events and Subscriptions to query the backend and store the result in the
-;; app-state.
-
-(rf/reg-event-fx
- :experiments/get
- (fn [_ _]
-   {:fx [[:http-xhrio {:method :get
-                       :uri (str config/api-location "/experiments")
-                       :format (ajax/transit-request-format)
-                       :response-format (ajax/transit-response-format)
-                       :on-success [:experiments.get/success]
-                       :on-failure [:experiments.get/error]}]]}))
-
-(rf/reg-event-db
- :experiments.get/success
- (fn [db [_ response]]
-   (assoc db :experiments (:experiments response))))
-
-(rf/reg-event-fx
-  :experiments.get/error
-  (fn [_ [_ error]]
-    {:fx
-       [[:log/error
-         (str
-           "Could not query the experiments. Did you forget to start the api? "
-           error)]]}))
-
-(rf/reg-sub
- :experiments
- (fn [db _]
-   (:experiments db)))
-
-
-
-(rf/reg-fx
- :log/error
- (fn [message]
-   (log/error message)))
-
 
 
 ;; -- Entry Point -------------------------------------------------------------
