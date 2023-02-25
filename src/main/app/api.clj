@@ -34,8 +34,13 @@
               connected-uids
               ajax-post-fn
               ajax-get-or-ws-handshake-fn]}
-      (sente/make-channel-socket! (get-sch-adapter)
-                                  {:csrf-token-fn (fn [ring-req] "testing")})]
+      (sente/make-channel-socket-server!
+        (get-sch-adapter))]
+        ; {:csrf-token-fn (fn [ring-req] #p (:anti-forgery-token ring-req))})]
+        ; {:csrf-token-fn
+        ;  (fn [ring-req]
+        ;    #p (force ring.middleware.anti-forgery/*anti-forgery-token*))))]
+        ;  "testing")})]
   (def ring-ajax-post ajax-post-fn)
   (def ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn)
   (def ch-chsk ch-recv)    ; ChannelSocket's receive channel
@@ -56,7 +61,7 @@
        :identity (:identity request)}))
 
 
-(defn landing-pg-handler [] ;  [ring-req]
+(defn landing-pg-handler [ring-req]
   (hiccup/html
     [:head
      [:title "Game"]
@@ -67,13 +72,24 @@
              :href "node_modules/bootstrap/dist/css/bootstrap.min.css"}]]
     [:body
       (let [csrf-token
-            ;; (:anti-forgery-token ring-req) ; Also an option
-            "testing"]
+            (:anti-forgery-token ring-req)] ; Also an option
+            ; "testing"]
             ; (force ring.middleware.anti-forgery/*anti-forgery-token*)]
-
+        (prn "TOKEN" csrf-token)
         [:div#sente-csrf-token {:data-csrf-token csrf-token}])
       [:div#app]
       [:script {:src "/js/compiled/base.js"}]]))
+
+
+(defn login-handler
+  "Here's where you'll add your server-side login/auth procedure (Friend, etc.).
+  In our simplified example we'll just always successfully authenticate the user
+  with whatever user-id they provided in the auth request."
+  [ring-req]
+  (let [{:keys [session params]} ring-req
+        {:keys [user-id]} params]
+    (log/debugf "Login request: %s" params)
+    {:status 200 :session (assoc session :uid user-id)}))
 
 
 ;;;; Sente event handlers
@@ -121,18 +137,15 @@
 
 
 (def ^:private api-routes
-  [["/" {:get (fn [_] (ok (landing-pg-handler)))}]
-   ["/debug" {:swagger {:tags ["debug"]}}
-    ["" {:name :api/debug
-         :get {:handler reveal-information}
-         :post {:handler reveal-information}}]]
-   ["/wizard"
-    {:get (fn [_] (ok {:wizard "🧙"}))}]
-   ["/experiments"
-    {:get (fn [_] (ok {:experiments (parse-experiments "./data")}))}]
-   ["/chsk"
-    {:get (fn [req] (ring-ajax-get-or-ws-handshake req))
-     :post (fn [req] (ring-ajax-post req))}]])
+  [["/" {:get (fn [req] (ok (landing-pg-handler req)))}]
+   ["/debug"
+    {:swagger {:tags ["debug"]}}
+    [""
+     {:name :api/debug
+      :get  {:handler reveal-information}
+      :post {:handler reveal-information}}]]
+   ["/login" {:post login-handler}]
+   ["/chsk" {:get ring-ajax-get-or-ws-handshake :post ring-ajax-post}]])
 
 
 
