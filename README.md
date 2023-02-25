@@ -60,6 +60,16 @@ Then, start up all the servers with:
 
     ./run.zsh
 
+You might need to open ports 3000, 5000, and 9630 to connect from another
+machine.
+On linux with UFW you can do this with:
+
+```
+sudo ufw allow 3000
+sudo ufw allow 5000
+sudo ufw allow 9630
+```
+
 ### Individual Server Startup
 
 You can start the frontend service with:
