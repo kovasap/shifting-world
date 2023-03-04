@@ -37,6 +37,7 @@ Once a player has completed 3 orders, the game ends.
    terraformer tile selection.
  - A pretty background
  - Make tax a percent of the resources instead of a flat value.
+ - Other players can take resources off your tiles only after they reach a certain stack size (and still pay tax)
  - Add a deck of global effects (weather?) from which a new card is flipped each
    round.
    Each card has an effect that changes parameters across the whole game.
