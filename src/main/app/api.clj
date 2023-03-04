@@ -35,7 +35,9 @@
               ajax-post-fn
               ajax-get-or-ws-handshake-fn]}
       (sente/make-channel-socket-server!
-        (get-sch-adapter))]
+        (get-sch-adapter)
+        {:csrf-token-fn nil
+         :user-id-fn (fn [ring-req] (:client-id ring-req))})]
         ; {:csrf-token-fn (fn [ring-req] #p (:anti-forgery-token ring-req))})]
         ; {:csrf-token-fn
         ;  (fn [ring-req]
@@ -81,6 +83,7 @@
       [:script {:src "/js/compiled/base.js"}]]))
 
 
+; Not currently necessary/used
 (defn login-handler
   "Here's where you'll add your server-side login/auth procedure (Friend, etc.).
   In our simplified example we'll just always successfully authenticate the user
@@ -173,7 +176,7 @@
                         muuntaja/format-middleware
                         ring.middleware.keyword-params/wrap-keyword-params
                         ring.middleware.params/wrap-params
-                        ring.middleware.anti-forgery/wrap-anti-forgery
+                        ; ring.middleware.anti-forgery/wrap-anti-forgery
                         ring.middleware.session/wrap-session
                         coercion/coerce-response-middleware ;; coercing response bodies
                         coercion/coerce-request-middleware ;; coercing request parameters

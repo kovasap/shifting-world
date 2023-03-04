@@ -70,7 +70,7 @@ session."
    (log/infof "Trying login with %s" req)
    (sente/ajax-lite "/login" req
      (fn [ajax-resp]
-       (log/errorf "Ajax login response: %s" ajax-resp)
+       (log/infof "Ajax login response: %s" ajax-resp)
        (let [login-successful? true] ; Your logic here
           
          (if-not login-successful?

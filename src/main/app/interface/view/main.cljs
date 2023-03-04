@@ -22,6 +22,19 @@
        "Undo"])))
 
 
+; Not currently necessary/used
+(defn login-field
+  []
+  [:span
+   [:input#input-login {:type :text :placeholder "User-id"}]
+   [:button.btn.btn-outline-primary
+    {:on-click (fn []
+                 (let [user-id (.-value (.getElementById js/document
+                                                         "input-login"))]
+                   (login user-id)))}
+    "Secure login!"]])
+
+
 (defn main
   "Main view for the application."
   []
@@ -37,14 +50,7 @@
      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
       "Setup Game"]
      [undo-button]
-     [:span
-      [:input#input-login {:type :text :placeholder "User-id"}]
-      [:button.btn.btn-outline-primary
-       {:on-click (fn []
-                    (let [user-id (.-value (.getElementById js/document
-                                                            "input-login"))]
-                      (login user-id)))}
-       "Secure login!"]]
+     ; [login-field]
      [:br]
      [:br]
      [:div {:style {:display  "grid"
