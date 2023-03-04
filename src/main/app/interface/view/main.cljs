@@ -47,26 +47,28 @@
                           ring.middleware.anti-forgery/*anti-forgery-token*)]
          [:div#sente-csrf-token {:data-csrf-token csrf-token}])
      [:h1 "Welcome to Terraforming Catan!"]
-     [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
-      "Setup Game"]
-     [undo-button]
      ; [login-field]
      [:br]
      [:br]
      [:div {:style {:display  "grid"
                     :grid-template-columns "auto auto auto"
                     :grid-gap "15px"}}
-      (into [:div] (for [player players] (player-card-view player)))
+      [:div
+       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch
+                                                      [:game/setup])}
+        "Setup Game"]
+       [undo-button]
+       (into [:div] (for [player players] (player-card-view player)))
+       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
+        "End Turn"]
+       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
+        "End Round"]]
       [:div
        (board-view)
        [:br]
        [:div @(rf/subscribe [:message])]
        [:br]
-       (development-hand)
-       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
-        "End Turn"]
-       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
-        "End Round"]]
+       (development-hand)]
       (into [:div [:h1 "Orders"]] (for [order orders] (order-view order)))]
      [:div
       "TODO add diff of game state to show what just happened\n"

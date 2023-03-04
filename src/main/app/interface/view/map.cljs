@@ -74,7 +74,7 @@
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must
 ; be kept in sync!
-(def hex-tile-size-px 180)
+(def hex-tile-size-px 150)
 (def hex-margin-px 5)
 (defn required-hex-grid-px-width
   [board]

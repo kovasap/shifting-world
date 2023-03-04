@@ -3,7 +3,7 @@
 */
 .boardmain {
   display:flex;
-  --s: 180px;  /* size  */
+  --s: 150px;  /* size  */
   --m: 5px;    /* margin */
   --f: calc(1.732 * var(--s) + 4 * var(--m)  - 1px);
 }
