@@ -33,6 +33,19 @@ Once a player has completed 3 orders, the game ends.
 
 ### Stuff to Add
 
+ - Make it so orders ARE developments that have specific requirements to be
+   placed (like other developments), but the requirements involve a specific
+   player having built something.
+ - resources don't accumulate?
+   you just need buildings that build things to meet requirements?
+ - roads to transport resources between tiles that can use them?
+   maybe roads are the only way to use someone elses development in your
+   production chain
+ - Make it so orders are provided by tiles on the map, and all possible orders
+   are fixed at the start of the game.
+ - Make it so that players have no inventory, all resources on tiles they
+   control form their bank.
+ - Players can claim tiles (instead of taking resources off them)
  - A tile selection system to use for all selection, use this for the
    terraformer tile selection.
  - A pretty background

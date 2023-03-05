@@ -93,7 +93,8 @@
       ; Go through each tile and remove as many resources as possible until the
       ; chain's resources are satisfied.
       ; Also update the current tiles claimable resources.
-      (assoc-in (drain-resources board source-tiles production-chain)
+      ; TODO Uncomment this to drain resources
+      (assoc-in board ; (drain-resources board source-tiles production-chain))
         [row-idx col-idx :claimable-resources]
         (merge-with + (get-pos-pairs production-chain) claimable-resources))
       ; This chain is not possible - it consumes more resources than are
@@ -105,16 +106,18 @@
     "Fw1 FM
      F   W"))
 
-(assert (= -debug-board2
-           (execute-production-chain {:wood -2}
-                                     -debug-board2
-                                     (get-in -debug-board2 [0 1]))))
+; These asserts are commented because they assume resources will be drained
 
-(assert (= 0
-           (get-in (execute-production-chain {:wood -1}
-                                             -debug-board2
-                                             (get-in -debug-board2 [0 1]))
-                   [0 0 :claimable-resources :wood])))
+#_(assert (= -debug-board2
+             (execute-production-chain {:wood -2}
+                                       -debug-board2
+                                       (get-in -debug-board2 [0 1]))))
+
+#_(assert (= 0
+             (get-in (execute-production-chain {:wood -1}
+                                               -debug-board2
+                                               (get-in -debug-board2 [0 1]))
+                     [0 0 :claimable-resources :wood])))
 
 (defn accumulate-production-resources
   "Remove consumed and add produced resources."
@@ -123,7 +126,7 @@
                           #(execute-production-chain pc % tile)))
    board))
 
-(assert (= 1
-           (get-in (accumulate-production-resources -debug-board2
-                                                    (get-in -debug-board2 [0 1]))
-                   [0 1 :claimable-resources :planks])))
+#_(assert (= 1
+             (get-in (accumulate-production-resources -debug-board2
+                                                      (get-in -debug-board2 [0 1]))
+                     [0 1 :claimable-resources :planks])))

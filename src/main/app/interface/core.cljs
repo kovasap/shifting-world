@@ -42,10 +42,9 @@
    :max-workers     2
    :blueprints      (make-opening-hand)
    :owned-resources (if debug
-                      {:wood 2 :stone 5}
-                      (assoc (into {}
-                                   (for [{:keys [type]} resources] [type 0]))
-                        :stone 5))})
+                      {:wood 2}
+                      (into {}
+                            (for [{:keys [type]} resources] [type 0])))})
 
 (rf/reg-event-db
   :game/setup

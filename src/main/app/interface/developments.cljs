@@ -22,6 +22,8 @@
 ; TODO make all the functions in this list instead into reframe dispatches so
 ; that we can serialize this to edn to save state for the game (functions can't
 ; be serialized)
+; Or just make all developments references to the objects in this list (via
+; type keyword)
 ;
 ; TODO add:
 ;  - development that's just worth points
