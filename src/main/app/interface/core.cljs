@@ -12,15 +12,13 @@
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
             [app.interface.board :refer [update-tiles]]
-            [app.interface.resource-flow
-             :refer
-             [accumulate-land-resources accumulate-production-resources
-              update-board-tiles]]
             [app.interface.map-generation :refer [setup-board]]
-            [app.interface.developments :refer [make-opening-hand]]
+            [app.interface.developments :refer [developments]]
+            [app.interface.development-placement]
             [app.interface.config :refer [debug]]
             [app.interface.resources :refer [resources]]
             [app.interface.orders :refer [orders]]
+            [app.interface.utils :refer [get-only]]
             [cljs.pprint]
             [taoensso.timbre :as log]))
 
@@ -33,6 +31,14 @@
 ;; ----------------------------------------------------------------------------
 ;; Setup
 
+(def opening-hand-size 4)
+
+(defn make-opening-hand
+  []
+  (conj (take opening-hand-size
+              (shuffle (filter #(not (:not-implemented %)) developments)))
+        (get-only developments :type :settlement)))
+        
 (defn player-data
   [i player-name]
   {:player-name     player-name
@@ -89,8 +95,8 @@
         ; Give everyone their workers back.
         (update :players #(mapv reset-workers %))
         (update :board update-tiles #(assoc % :worker-owner nil))
-        (update :board update-tiles accumulate-land-resources)
-        (update :board update-board-tiles accumulate-production-resources))))
+        #_(update :board update-tiles accumulate-land-resources)
+        #_(update :board update-board-tiles accumulate-production-resources))))
 
 
 ;; -- Entry Point -------------------------------------------------------------

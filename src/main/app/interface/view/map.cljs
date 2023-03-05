@@ -16,7 +16,7 @@
            development
            legal-placement?
            worker-owner
-           claimable-resources
+           production
            controller]
     :as   tile}]
   (let [adjacent-tiles @(rf/subscribe [:adjacent-tiles tile])
@@ -67,9 +67,8 @@
       [:div {:style {:color (:color controller)}}
        (if controller (str (:player-name controller) "'s") nil)]
       [:div (:type development)]
-      [:div "Tax: " (:tax development)]
       [:div worker-owner]
-      [:div "Claim: " claimable-resources]]]))
+      [:div "Production: " [:br] production]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must

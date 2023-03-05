@@ -34,7 +34,7 @@
 (defn development-blueprint-view
   [development]
   (let [n        (name (:type development))
-        existing @(rf/subscribe [:developments (:type development)])
+        existing-num @(rf/subscribe [:num-developments (:type development)])
         current-player-name (:player-name @(rf/subscribe [:current-player]))
         placing  @(rf/subscribe [:placing])
         placing-current (= (:type placing) (:type development))]
@@ -52,8 +52,9 @@
                     (rf/dispatch [:development/start-placing
                                   (:type development)
                                   current-player-name]))}
-      [:div "Place " n " " (count existing) "/" (:max development)]]
-     [:div "(cost " (:cost development) ")"]
+      [:div "Place " n " " existing-num "/" (:max development)]]
+     [:div (str "Land restriction: " (:valid-lands development))]
+     [:div (str "Chains: " (:production-chains development))]
      [:div (:description development)]]))
 
 
@@ -62,4 +63,4 @@
   (let [current-player @(rf/subscribe [:current-player])]
     (into [:div {:style {:display "flex" :gap "10px"}}]
           (for [development (:blueprints current-player)]
-           (development-blueprint-view development)))))
+            (development-blueprint-view development)))))

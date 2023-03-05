@@ -13,13 +13,6 @@
   (fn [db _]
     (:board db)))
 
-(rf/reg-sub
-  :developments
-  (fn [db _]
-    (reduce concat
-      (for [column (:board db)]
-        (for [tile column] (:development tile))))))
-
 (defn one-away?
   [n1 n2]
   (or (= n1 (dec n2))

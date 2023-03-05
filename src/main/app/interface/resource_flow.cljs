@@ -1,9 +1,7 @@
 (ns app.interface.resource-flow
   (:require
     [app.interface.map-generation :refer [parse-board-str]]
-    [app.interface.board
-     :refer
-     [update-tiles adjacent-to-owned-developments? get-adjacent-tiles]]))
+    [app.interface.board :refer [get-adjacent-tiles]]))
 
 
 (defn update-board-tile
@@ -65,68 +63,63 @@
            (resource-diff {:wood 5 :grain 2} {:wood -10 :grain -1})))
 
 
+(defn unmet-resources
+  "Returns {:resource int} map of all resources that cannot be met for the
+  given production chain."
+  [production-chain board tile]
+  (let [source-tiles (get-adjacent-tiles board tile)
+        available-resources (apply merge-with
+                              +
+                              (for [{:keys [production]} source-tiles]
+                                (get-pos-pairs production)))]
+    (get-neg-pairs (merge-with + available-resources production-chain))))
+
+
 (defn drain-resources
   [board candidate-tiles resources-to-drain]
-  (if (or (empty? candidate-tiles) (empty? (get-neg-pairs resources-to-drain)))
-    board
-    (let [{:keys [row-idx col-idx claimable-resources]} (first candidate-tiles)
+  (cond
+    (empty? (get-neg-pairs resources-to-drain))
+    board  ; success!
+    (empty? candidate-tiles)
+    "No more tiles, draining impossible!"
+    :else 
+    (let [{:keys [row-idx col-idx production]} (first candidate-tiles)
           [remaining-claimable-resources remaining-resources-to-drain]
-          (resource-diff claimable-resources resources-to-drain)]
+          (resource-diff production resources-to-drain)]
       (drain-resources (assoc-in board
-                         [row-idx col-idx :claimable-resources]
+                         [row-idx col-idx :production]
                          remaining-claimable-resources)
                        (rest candidate-tiles)
                        remaining-resources-to-drain))))
               
-(defn execute-production-chain
+(defn apply-production-chain
   "Returns an updated board."
-  [production-chain
-   board
-   {:keys [row-idx col-idx claimable-resources] :as tile}]
-  ; The current tile is added to the front of this list.
-  (let [source-tiles     (conj (get-adjacent-tiles board tile) tile)
-        resource-balance (reduce (partial merge-with +)
-                           (conj (map :claimable-resources source-tiles)
-                                 production-chain))]
-    (if (empty? (get-neg-pairs resource-balance))
-      ; This production-chain is possible
-      ; Go through each tile and remove as many resources as possible until the
-      ; chain's resources are satisfied.
-      ; Also update the current tiles claimable resources.
-      ; TODO Uncomment this to drain resources
-      (assoc-in board ; (drain-resources board source-tiles production-chain))
-        [row-idx col-idx :claimable-resources]
-        (merge-with + (get-pos-pairs production-chain) claimable-resources))
-      ; This chain is not possible - it consumes more resources than are
-      ; available!
+  [production-chain board {:keys [row-idx col-idx] :as tile}]
+  (let [source-tiles (get-adjacent-tiles board tile)]
+    (if (empty? (unmet-resources production-chain board tile))
+      (update-in
+        ; Remove production from surrounding tiles as needed.
+        (drain-resources board source-tiles production-chain)
+        [row-idx col-idx :production]
+        ; Add the production from this chain to this tile.
+        #(merge-with + (get-pos-pairs production-chain) %))
+      ; This production-chain is impossible, so we do nothing
       board)))
 
 (def -debug-board2
   (parse-board-str
-    "Fw1 FM
+    "FS  FM
      F   W"))
 
 ; These asserts are commented because they assume resources will be drained
 
-#_(assert (= -debug-board2
-             (execute-production-chain {:wood -2}
-                                       -debug-board2
-                                       (get-in -debug-board2 [0 1]))))
+; Impossible production chain
+(assert (= -debug-board2
+           (apply-production-chain
+             {:wood -3} -debug-board2 (get-in -debug-board2 [0 1]))))
 
-#_(assert (= 0
-             (get-in (execute-production-chain {:wood -1}
-                                               -debug-board2
-                                               (get-in -debug-board2 [0 1]))
-                     [0 0 :claimable-resources :wood])))
-
-(defn accumulate-production-resources
-  "Remove consumed and add produced resources."
-  [board {{:keys [production-chains]} :development :as tile}]
-  ((apply comp identity (for [pc production-chains]
-                          #(execute-production-chain pc % tile)))
-   board))
-
-#_(assert (= 1
-             (get-in (accumulate-production-resources -debug-board2
-                                                      (get-in -debug-board2 [0 1]))
-                     [0 1 :claimable-resources :planks])))
+(let [updated-board (apply-production-chain {:wood -1 :planks 1}
+                                            -debug-board2
+                                            (get-in -debug-board2 [0 1]))]
+  (assert (= 1 (get-in updated-board [0 0 :production :wood])))
+  (assert (= 1 (get-in updated-board [0 1 :production :planks]))))

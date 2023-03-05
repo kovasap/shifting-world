@@ -2,6 +2,7 @@
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
             [perlin2d.core :as p]
+            [app.interface.lands :refer [lands]]
             [app.interface.utils :refer [get-only]]
             [app.interface.resources :refer [resources]]
             [app.interface.developments :refer [developments]]
@@ -9,33 +10,6 @@
 
 ; TODO use one perlin noise for humidity and one for elevation to generate more
 ; land types in interesting ways
-
-(def lands
-  [{:letter     "F"
-    :type       :forest
-    :perlin-cutoff 0.35
-    :style      {:background-color "green"}}
-   {:letter     "P"
-    :type       :plains
-    :perlin-cutoff 0.3
-    :style      {:background-color "orange"}}
-   {:letter     "W"
-    :type       :water
-    :perlin-cutoff 0.0
-    :style      {:background-color "blue"}}
-   {:letter     "M"
-    :type       :mountain
-    :perlin-cutoff 0.75
-    :style      {:background-color "grey"}}
-   {:letter     "S"
-    :type       :sand
-    :perlin-cutoff 0.2
-    :style      {:background-color "yellow"}}
-   {:letter     "V"
-    :type       :void
-    :perlin-cutoff 10.0
-    :style      {:background-color "black"}}])
-
 
 (defn get-land-below-perlin-cutoff
   [perlin-cutoff]
@@ -62,7 +36,7 @@
 
 (defn base-tile
   [args]
-  (merge {:development      nil
+  (merge {:development-type      nil
           :row-idx          nil
           :col-idx          nil
           ; player
@@ -70,25 +44,21 @@
           :legal-placement? false
           ; nil if there is no worker
           :worker-owner     nil
-          :claimable-resources {}
           :land             nil}
          args))
 
 (defn tile-from-str
-  [row-idx col-idx [tile-letter bonus-letter bonus-resource-quantity]]
+  [row-idx col-idx [tile-letter bonus-letter]]
   (let [tile (base-tile {:row-idx row-idx
                          :col-idx col-idx
                          :land    (get-only lands :letter tile-letter)})
-        bonus-resource (:type (get-only resources :letter bonus-letter))
         neutral-development (get-only developments :letter bonus-letter)]
     (cond
-     bonus-resource
-     (assoc tile :claimable-resources {bonus-resource
-                                       (js/parseInt bonus-resource-quantity)})
      neutral-development
-     (assoc tile :development (assoc neutral-development
-                                     :owner "neutral"
-                                     :tax {}))
+     (assoc tile :development-type (:type neutral-development)
+                 :production ((:type (:land tile))
+                              (:land-production neutral-development))
+                 :owner "neutral")
      :else tile)))
 
 (defn parse-board-str
@@ -117,8 +87,8 @@
 ; TODO have each tile start with one resource of it's type
 (def manual-board
   (parse-board-str
-    "Fw1 M   M   Fw1 Fw1 Fw1 Fw1
-     M   W   MS  FS  F   Fu1 F
+    "F   M   M   F   F   F   F  
+     M   W   MS  FS  F   F   F
      W   M   F   F   F   F   F
      W   M   M   F   F   F   F
      S   F   F   F   F   F   F"))
