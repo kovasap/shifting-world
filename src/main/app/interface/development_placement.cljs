@@ -33,13 +33,16 @@
   "Returns a boolean"
   [development-type db tile]
   (let [development (get-only developments :type development-type)
-        valid-lands (get development :valid-lands (set (map :type lands)))]
+        valid-lands (get development :valid-lands (set (map :type lands)))
+        chains-to-unmet-resources
+        (into {}
+              (for [chain (:production-chains development)]
+                [chain (unmet-resources chain (:board db) tile)]))]
     (cond
-      (not (nil? (:development-type tile)))
-      "Tile is already occupied!"
-      (every? #(unmet-resources % (:board db) tile)
-              (:production-chains development))
-      "All possible production chains invalid!"
+      (not (nil? (:development-type tile))) "Tile is already occupied!"
+      (and (seq chains-to-unmet-resources)
+           (every? seq (vals chains-to-unmet-resources)))
+      (str "All possible production chains invalid! " chains-to-unmet-resources)
       (not (contains? valid-lands (:type (:land tile))))
       (str "Invalid land type, must be one of " valid-lands)
       (adjacent-to-owned-developments? (:board db)
@@ -51,6 +54,8 @@
       "Max number already placed!"
       :else true)))
 
+
+(every? identity nil)
 
 
 #_(rf/reg-event-db
@@ -114,8 +119,8 @@
    current-player-name]
   (let [development (get-only developments :type development-type)
         update-all-production
-        (partial apply (comp (for [chain (:production-chains development)]
-                               #(apply-production-chain chain % tile))))]
+        (apply comp (for [chain (:production-chains development)]
+                      #(apply-production-chain chain % tile)))]
     (-> board
         (update-in [row-idx col-idx]
                    #(assoc %

@@ -13,7 +13,7 @@
   [{:keys [land
            row-idx
            col-idx
-           development
+           development-type
            legal-placement?
            worker-owner
            production
@@ -41,9 +41,9 @@
       :on-click      #(cond @(rf/subscribe [:placing]) (rf/dispatch
                                                          [:development/place
                                                           tile])
-                            development (rf/dispatch [:development/use
-                                                      development
-                                                      tile])
+                            development-type (rf/dispatch [:development/use
+                                                           development-type
+                                                           tile])
                             :else (rf/dispatch [:message
                                                 "Can't do anything here"]))}
      [:div.background
@@ -58,15 +58,15 @@
      ; Note that the "clip-path" property that makes the hexagon shapes applies
      ; to all child divs, making it impossible for them to overflow their
      ; parent.
-     (development-desc-view development row-idx col-idx)
+     (development-desc-view development-type row-idx col-idx)
      [:div {:style {:position "absolute" :padding-top "10px" :width "100%"}}
       [:div {:style {:display (if debug "block" "none")}}
        row-idx
        ", "
        col-idx]
       [:div {:style {:color (:color controller)}}
-       (if controller (str (:player-name controller) "'s") nil)]
-      [:div (:type development)]
+       (if controller (str controller "'s") nil)]
+      [:div development-type]
       [:div worker-owner]
       [:div "Production: " [:br] production]]]))
 

@@ -1,12 +1,15 @@
 (ns app.interface.view.developments
   (:require [re-frame.core :as rf]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [app.interface.utils :refer [get-only]]
+            [app.interface.developments :refer [developments]]))
 
 
 (def dev-desc-hover-state (r/atom {}))
 (defn development-desc-view
-  [development row-idx col-idx]
-  (let [unique-key [row-idx col-idx]]
+  [development-type row-idx col-idx]
+  (let [unique-key [row-idx col-idx]
+        development (get-only developments :type development-type)]
     [:div {:style         {:width    "100%"
                            :height   "100%"
                            :position "absolute"

@@ -29,7 +29,6 @@
     :description "Produces planks from wood AND/OR flour from grain."
     :production-chains [{:wood -1 :planks 1}
                         {:grain -1 :flour 1}]
-    :valid-lands #{:plains}
     :max         6}
    {:type        :oven
     :letter      "O"
