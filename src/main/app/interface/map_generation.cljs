@@ -41,7 +41,7 @@
           :col-idx          nil
           ; player
           :controller       nil
-          :legal-placement? false
+          :legal-placement-or-error "Nothing to do here"
           ; nil if there is no worker
           :worker-owner     nil
           :land             nil}

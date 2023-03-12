@@ -89,7 +89,9 @@
    (-> db
        (assoc :board (update-tiles (:board db)
                                    (fn [tile]
-                                     (assoc tile :legal-placement? false))))
+                                     (assoc tile
+                                       :legal-placement-or-error
+                                       "Not placing anything"))))
        (assoc :placing false)))
   ([db _] (stop-placing db)))
 

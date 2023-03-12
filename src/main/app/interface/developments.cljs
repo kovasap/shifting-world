@@ -1,6 +1,12 @@
-(ns app.interface.developments)
+(ns app.interface.developments
+  (:require [app.interface.lands :refer [lands]]
+            [clojure.set :refer [difference]]))
 
 ; TODO add malli spec for development
+
+(def generally-valid-lands
+  (difference (set (map :type lands)) #{:water :void}))
+         
   
 ; TODO add:
 ;  - development that's just worth points
@@ -16,6 +22,7 @@
                       :plains {:food 2}
                       :mountain {:stone 2}
                       :water {:water 2}}
+    :valid-lands generally-valid-lands
     :max         6}
    {:type        :hideout
     :letter      "H"
@@ -23,12 +30,14 @@
                  turn (bandits are stealing them)."
     :not-implemented true
     :on-placement (fn [db] db) ; TODO implement
+    :valid-lands generally-valid-lands
     :max         6}
    {:type        :mill
     :letter      "M"
     :description "Produces planks from wood AND/OR flour from grain."
     :production-chains [{:wood -1 :planks 1}
                         {:grain -1 :flour 1}]
+    :valid-lands generally-valid-lands
     :max         6}
    {:type        :oven
     :letter      "O"
@@ -68,4 +77,5 @@
    {:type        :terraformer
     :description "Change the land type of any tile"
     :not-implemented true
+    :valid-lands generally-valid-lands
     :max         3}])

@@ -40,7 +40,7 @@
         existing-num @(rf/subscribe [:num-developments (:type development)])
         current-player-name (:player-name @(rf/subscribe [:current-player]))
         placing  @(rf/subscribe [:placing])
-        placing-current (= (:type placing) (:type development))]
+        placing-current (= placing (:type development))]
     (swap! unique-id inc)
     [:div {:key   (str n @unique-id) ; Required by react (otherwise we get a warning).
            :style {:background "white" :text-align "left"

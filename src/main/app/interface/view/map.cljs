@@ -14,18 +14,19 @@
            row-idx
            col-idx
            development-type
-           legal-placement?
-           worker-owner
+           legal-placement-or-error
            production
            controller]
     :as   tile}]
   (let [adjacent-tiles @(rf/subscribe [:adjacent-tiles tile])
-        hovered        (get-in @tile-hover-state [row-idx col-idx])]
+        hovered        (get-in @tile-hover-state [row-idx col-idx])
+        legal-placement? (not (string? legal-placement-or-error))]
     [:div.tile
      {:style         {:font-size  "12px"
                       :text-align "center"
                       :position   "relative"}
-      :class         (if worker-owner "activate" "") 
+      ; Run the placement animation.
+      :class         (if development-type "activate" "") 
       :on-mouse-over #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}
                               (conj adjacent-tiles tile)]
                         (swap! tile-hover-state (fn [state]
@@ -67,8 +68,7 @@
       [:div {:style {:color (:color controller)}}
        (if controller (str controller "'s") nil)]
       [:div development-type]
-      [:div worker-owner]
-      [:div "Production: " [:br] production]]]))
+      [:div (str production)]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must
