@@ -1,23 +1,26 @@
 (ns app.interface.players
   (:require [re-frame.core :as rf]))
 
-(defn update-resources
-  [db player-idx resource-delta]
-  (update-in db
-             [:players player-idx :owned-resources]
-             #(merge-with + resource-delta %)))
+(defn player-data
+  [i player-name]
+  {:player-name     player-name
+   :index           i
+   :color           (get ["blue" "red" "purple" "black"] i)
+   :points          0})
 
-(defn update-resources-with-check
-  [db player-idx resource-delta]
-  (let [updated (update-resources db player-idx resource-delta)]
-    (if (seq (filter (fn [[_ amount]] (> 0 amount))
-               (get-in updated [:players player-idx :owned-resources])))
-      [false (assoc db :message "Cannot pay the cost!")]
-      [true updated])))
+#_(defn update-resources
+    [db player-idx resource-delta]
+    (update-in db
+               [:players player-idx :owned-resources]
+               #(merge-with + resource-delta %)))
 
-(defn reset-workers
-  [player]
-  (assoc player :workers (:max-workers player)))
+#_(defn update-resources-with-check
+    [db player-idx resource-delta]
+    (let [updated (update-resources db player-idx resource-delta)]
+      (if (seq (filter (fn [[_ amount]] (> 0 amount))
+                 (get-in updated [:players player-idx :owned-resources])))
+        [false (assoc db :message "Cannot pay the cost!")]
+        [true updated])))
 
 (rf/reg-sub
   :players

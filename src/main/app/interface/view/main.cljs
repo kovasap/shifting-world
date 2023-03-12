@@ -8,7 +8,7 @@
             [app.interface.view.orders :refer [order-view]]
             [app.interface.view.players :refer [player-card-view]]
             [app.interface.developments :refer [developments]]
-            [app.interface.view.developments :refer [development-hand]]
+            [app.interface.view.developments :refer [blueprints]]
             [cljs.pprint]))
 
 (defn undo-button
@@ -70,7 +70,7 @@
        [:br]
        [:div @(rf/subscribe [:message])]
        [:br]
-       (development-hand)]
+       (blueprints)]
       (into [:div [:h1 "Orders"]] (for [order orders] (order-view order)))]
      [:div
       "TODO add diff of game state to show what just happened\n"

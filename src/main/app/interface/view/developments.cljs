@@ -43,27 +43,25 @@
         placing-current (= placing (:type development))]
     (swap! unique-id inc)
     [:div {:key   (str n @unique-id) ; Required by react (otherwise we get a warning).
-           :style {:background "white" :text-align "left"
+           :style {:background "LightBlue" :text-align "left"
                    :width "150px"
                    :flex 1
                    :padding "15px"
-                   :border "2px solid black"}}
-     [:button.btn.btn-outline-primary
-      {:style    {:font-weight (if placing-current "bold" "normal")}
-       :on-click #(if placing-current
-                    (rf/dispatch [:development/stop-placing])
-                    (rf/dispatch [:development/start-placing
-                                  (:type development)
-                                  current-player-name]))}
-      [:div "Place " n " " existing-num "/" (:max development)]]
+                   :font-weight (if placing-current "bold" "normal")
+                   :border "2px solid black"}
+           :on-click #(if placing-current
+                        (rf/dispatch [:development/stop-placing])
+                        (rf/dispatch [:development/start-placing
+                                      (:type development)
+                                      current-player-name]))}
+     [:div "Place " n " " existing-num "/" (:max development)]
      [:div (str "Land restriction: " (:valid-lands development))]
      [:div (str "Chains: " (:production-chains development))]
      [:div (:description development)]]))
 
 
-(defn development-hand
+(defn blueprints
   []
-  (let [current-player @(rf/subscribe [:current-player])]
-    (into [:div {:style {:display "flex" :gap "10px"}}]
-          (for [development (:blueprints current-player)]
-            (development-blueprint-view development)))))
+  (into [:div {:style {:display "flex" :gap "10px"}}]
+        (for [development @(rf/subscribe [:blueprints])]
+          (development-blueprint-view development))))

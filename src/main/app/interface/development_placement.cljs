@@ -115,38 +115,35 @@
 
 
 (defn update-board-with-development
-  [development-type
+  [development
    board
    {:keys [row-idx col-idx land] :as tile}
    current-player-name]
-  (let [development (get-only developments :type development-type)
+  (let [
         update-all-production
         (apply comp (for [chain (:production-chains development)]
                       #(apply-production-chain chain % tile)))]
     (-> board
         (update-in [row-idx col-idx]
                    #(assoc %
-                      :development-type development-type
+                      :development-type (:type development)
                       :production       (land (:land-production development))
-                      :owner            current-player-name
-                      :controller       current-player-name
-                      :worker-owner     current-player-name))
+                      :controller-name       current-player-name))
         (update-all-production))))
 
 (rf/reg-event-db
   :development/place
   (undoable "Development Placement")
   (fn [db [_ {:keys [legal-placement-or-error] :as tile}]]
-    (let [current-player-name (:player-name @(rf/subscribe [:current-player]))]
+    (let [current-player-name (:player-name @(rf/subscribe [:current-player]))
+          development (get-only developments :type (:placing db))]
       (cond (string? legal-placement-or-error)
             (assoc db :message legal-placement-or-error)
-            (= 0 (get-in db [:players (:current-player-idx db) :workers]))
-            (assoc db :message "No more workers!")
             :else
             (-> db
                 (update :board #(update-board-with-development
                                   (:placing db) % tile current-player-name))
-                (update-in [:players (:current-player-idx db) :workers] dec)
+                ((:on-placement development))
                 (stop-placing))))))
         
 

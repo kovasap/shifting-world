@@ -8,7 +8,7 @@
             [re-frame.core :as rf]
             [reagent.core :as r]
             [app.interface.sente :refer [send-game-state-to-server!]]
-            [app.interface.players :refer [next-player-idx reset-workers]]
+            [app.interface.players :refer [next-player-idx player-data]]
             [clojure.string :as st]
             [app.interface.view.main :refer [main]]
             [app.interface.board :refer [update-tiles]]
@@ -31,26 +31,13 @@
 ;; ----------------------------------------------------------------------------
 ;; Setup
 
-(def opening-hand-size 4)
+(def available-developments 8)
 
-(defn make-opening-hand
+(defn select-developments
   []
-  (conj (take opening-hand-size
+  (conj (take available-developments
               (shuffle (filter #(not (:not-implemented %)) developments)))
         (get-only developments :type :settlement)))
-        
-(defn player-data
-  [i player-name]
-  {:player-name     player-name
-   :index           i
-   :color           (get ["blue" "red" "purple" "black"] i)
-   :workers         2
-   :max-workers     2
-   :blueprints      (make-opening-hand)
-   :owned-resources (if debug
-                      {:wood 2}
-                      (into {}
-                            (for [{:keys [type]} resources] [type 0])))})
 
 (rf/reg-event-db
   :game/setup
@@ -62,7 +49,13 @@
          :orders (take 3 (shuffle orders))
          :players (into [] (map-indexed player-data ["cupid" "zeus" "hades"]))
          :current-player-idx 0
+         :blueprints (select-developments)
          :placing false))))
+
+(rf/reg-sub
+  :blueprints
+  (fn [db _]
+    (:blueprints db)))
 
 (rf/reg-event-db
   :message
@@ -92,8 +85,6 @@
   (fn [db [_]]
     (-> db
         ; TODO check if orders have been fulfilled and end the game if so.
-        ; Give everyone their workers back.
-        (update :players #(mapv reset-workers %))
         (update :board update-tiles #(assoc % :worker-owner nil))
         #_(update :board update-tiles accumulate-land-resources)
         #_(update :board update-board-tiles accumulate-production-resources))))

@@ -2,6 +2,7 @@
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
             [app.interface.config :refer [debug]]
+            [app.interface.utils :refer [get-only]]
             [app.interface.view.developments :refer [development-desc-view]]))
 
 
@@ -16,17 +17,20 @@
            development-type
            legal-placement-or-error
            production
-           controller]
+           controller-name]
     :as   tile}]
-  (let [adjacent-tiles @(rf/subscribe [:adjacent-tiles tile])
-        hovered        (get-in @tile-hover-state [row-idx col-idx])
-        legal-placement? (not (string? legal-placement-or-error))]
+  (let [adjacent-tiles   @(rf/subscribe [:adjacent-tiles tile])
+        hovered          (get-in @tile-hover-state [row-idx col-idx])
+        legal-placement? (not (string? legal-placement-or-error))
+        controller       (get-only @(rf/subscribe [:players])
+                                   :player-name
+                                   controller-name)]
     [:div.tile
      {:style         {:font-size  "12px"
                       :text-align "center"
                       :position   "relative"}
       ; Run the placement animation.
-      :class         (if development-type "activate" "") 
+      :class         (if development-type "activate" "")
       :on-mouse-over #(doseq [{t-row-idx :row-idx t-col-idx :col-idx}
                               (conj adjacent-tiles tile)]
                         (swap! tile-hover-state (fn [state]
@@ -66,7 +70,7 @@
        ", "
        col-idx]
       [:div {:style {:color (:color controller)}}
-       (if controller (str controller "'s") nil)]
+       (if controller-name (str controller-name "'s") nil)]
       [:div development-type]
       [:div (str production)]]]))
 
