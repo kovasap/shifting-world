@@ -1,11 +1,10 @@
 (ns app.interface.lands)
 
-
 (def lands
   [{:letter     "F"
     :type       :forest
     :perlin-cutoff 0.35
-    :style      {:background-color "green"}}
+    :style      {:background-color "forestgreen"}}
    {:letter     "P"
     :type       :plains
     :perlin-cutoff 0.3
@@ -13,7 +12,7 @@
    {:letter     "W"
     :type       :water
     :perlin-cutoff 0.0
-    :style      {:background-color "blue"}}
+    :style      {:background-color "MediumTurquoise"}}
    {:letter     "M"
     :type       :mountain
     :perlin-cutoff 0.75

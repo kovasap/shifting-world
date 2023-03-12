@@ -18,7 +18,8 @@
     (fn []
       [:button.btn.btn-outline-primary
        {:disabled (not @undos?)
-        :on-click #(rf/dispatch [:undo])}
+        :on-click #(rf/dispatch [:undo])
+        :style {:margin-right "auto"}}
        "Undo"])))
 
 
@@ -48,21 +49,22 @@
          [:div#sente-csrf-token {:data-csrf-token csrf-token}])
      [:h1 "Welcome to Terraforming Catan!"]
      ; [login-field]
-     [:br]
-     [:br]
+     [:div {:style {:display "flex"}}
+      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
+       "Setup Game"]
+      [undo-button]
+      (into [:div {:style {:display "flex" 
+                           :width "100%"
+                           :justify-content "space-evenly"}}]
+            (for [player players] (player-card-view player)))
+      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])
+                                        :style {:margin-left "auto"}}
+       "End Turn"]
+      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
+       "End Round"]]
      [:div {:style {:display  "grid"
-                    :grid-template-columns "auto auto auto"
+                    :grid-template-columns "auto auto"
                     :grid-gap "15px"}}
-      [:div
-       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch
-                                                      [:game/setup])}
-        "Setup Game"]
-       [undo-button]
-       (into [:div] (for [player players] (player-card-view player)))
-       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])}
-        "End Turn"]
-       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
-        "End Round"]]
       [:div
        (board-view)
        [:br]
