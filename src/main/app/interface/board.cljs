@@ -40,10 +40,10 @@
   (fn [db [_ tile]]
     (get-adjacent-tiles (:board db) tile)))
 
-(defn adjacent-to-owned-developments?
+(defn adjacent-to-controlled-developments?
   [board tile player]
-  (some #(= (:player-name (:controller %)) (:player-name player))
-        (get-adjacent-tiles board tile)))
+  (not (nil? (some #(= (:controller-name %) (:player-name player))
+                   (get-adjacent-tiles board tile)))))
 
 (defn update-adjacent-tiles
   [board tile update-fn]

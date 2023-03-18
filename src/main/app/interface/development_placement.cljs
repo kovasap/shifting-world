@@ -5,9 +5,20 @@
    [app.interface.players :refer [get-current-player]]
    [app.interface.developments :refer [developments]]
    [app.interface.lands :refer [lands]]
-   [app.interface.board :refer [update-tiles adjacent-to-owned-developments?]]
+   [app.interface.board :refer [update-tiles adjacent-to-controlled-developments?]]
    [app.interface.resource-flow :refer [unmet-resources apply-production-chain]]
    [app.interface.utils :refer [get-only]]))
+
+
+(defn control-any-tiles?
+  [board player-name]
+  (> (count
+      (reduce concat
+        (for [column board]
+          (for [{:keys [controller-name]} column
+                :when (= controller-name player-name)]
+            controller-name))))
+     0))
 
 
 (defn get-num-developments
@@ -32,23 +43,30 @@
 (defn is-legal-placement?
   "Returns a boolean"
   [development-type db tile]
-  (let [development (get-only developments :type development-type)
-        valid-lands (get development :valid-lands (set (map :type lands)))
+  (let [development         (get-only developments :type development-type)
+        valid-lands         (get development
+                                 :valid-lands
+                                 (set (map :type lands)))
         chains-to-unmet-resources
         (into {}
               (for [chain (:production-chains development)]
-                [chain (unmet-resources chain (:board db) tile)]))]
+                [chain (unmet-resources chain (:board db) tile)]))
+        current-player-name (:player-name (get-current-player db))]
     (cond
-      (not (nil? (:development-type tile))) "Tile is already occupied!"
+      (not (nil? (:development-type tile)))
+      "Tile is already occupied!"
       (and (seq chains-to-unmet-resources)
            (every? seq (vals chains-to-unmet-resources)))
-      (str "All possible production chains invalid! " chains-to-unmet-resources)
+      (str "All possible production chains invalid! "
+           chains-to-unmet-resources)
       (not (contains? valid-lands (:type (:land tile))))
       (str "Invalid land type, must be one of " valid-lands)
-      (adjacent-to-owned-developments? (:board db)
-                                       tile
-                                       (get-current-player db))
-      "Must adjacent to developments you own!"
+      (and (control-any-tiles? (:board db) current-player-name)
+           (not
+             (adjacent-to-controlled-developments? (:board db)
+                                                   tile
+                                                   (get-current-player db))))
+      "Must adjacent to developments you own, unless you own no tiles!"
       (>= (get-num-developments (:board db) development-type)
           (:max development))
       "Max number already placed!"
@@ -119,30 +137,31 @@
    board
    {:keys [row-idx col-idx land] :as tile}
    current-player-name]
-  (let [
-        update-all-production
-        (apply comp (for [chain (:production-chains development)]
-                      #(apply-production-chain chain % tile)))]
+  (let [update-all-production (apply comp
+                                (for [chain (:production-chains development)]
+                                  #(apply-production-chain chain % tile)))]
+    (prn tile)
     (-> board
-        (update-in [row-idx col-idx]
-                   #(assoc %
-                      :development-type (:type development)
-                      :production       (land (:land-production development))
-                      :controller-name       current-player-name))
+        (update-in
+          [row-idx col-idx]
+          #(assoc %
+             :development-type (:type development)
+             :production       ((:type land) (:land-production development))
+             :controller-name  current-player-name))
         (update-all-production))))
 
 (rf/reg-event-db
   :development/place
   (undoable "Development Placement")
   (fn [db [_ {:keys [legal-placement-or-error] :as tile}]]
-    (let [current-player-name (:player-name @(rf/subscribe [:current-player]))
+    (let [current-player-name (:player-name (get-current-player db))
           development (get-only developments :type (:placing db))]
       (cond (string? legal-placement-or-error)
             (assoc db :message legal-placement-or-error)
             :else
             (-> db
                 (update :board #(update-board-with-development
-                                  (:placing db) % tile current-player-name))
+                                  development % tile current-player-name))
                 ((:on-placement development))
                 (stop-placing))))))
         
