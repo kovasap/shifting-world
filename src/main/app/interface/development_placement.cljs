@@ -10,6 +10,17 @@
    [app.interface.utils :refer [get-only]]))
 
 
+(defn available-resources
+  [board player-name]
+  (reduce (partial merge-with +)
+    (for [column board]
+      (for [{:keys [controller-name production-chains]} column
+            :when (= controller-name player-name)]
+        (into {} (for [[resource amount] production-chains
+                       :when (> amount 0)]
+                   [resource amount]))))))
+
+
 (defn control-any-tiles?
   [board player-name]
   (> (count
@@ -140,7 +151,6 @@
   (let [update-all-production (apply comp
                                 (for [chain (:production-chains development)]
                                   #(apply-production-chain chain % tile)))]
-    (prn tile)
     (-> board
         (update-in
           [row-idx col-idx]
@@ -150,20 +160,51 @@
              :controller-name  current-player-name))
         (update-all-production))))
 
+(defn get-resources-by-player
+  [db player-to-exclude]
+  (into {}
+        (for [player-name (:players db)
+              :when (not (= player-name player-to-exclude))]
+          [player-name (available-resources (:board db) player-name)])))
+
+(defn resources-by-player-diff
+  [pre post]
+  (for [player-name (keys pre)]
+    (merge-with - (get pre player-name) (get post player-name))))
+
+; TODO update player points based on this
+(defn points-for-sharing
+  [resource-diff]
+  (apply + (vals resource-diff)))
+  
+
 (rf/reg-event-db
   :development/place
   (undoable "Development Placement")
   (fn [db [_ {:keys [legal-placement-or-error] :as tile}]]
     (let [current-player-name (:player-name (get-current-player db))
-          development (get-only developments :type (:placing db))]
-      (cond (string? legal-placement-or-error)
-            (assoc db :message legal-placement-or-error)
-            :else
-            (-> db
-                (update :board #(update-board-with-development
-                                  development % tile current-player-name))
-                ((:on-placement development))
-                (stop-placing))))))
+          development         (get-only developments :type (:placing db))
+          pre-placement-player-resources (get-resources-by-player
+                                           db current-player-name)
+          updated-db          (cond (string? legal-placement-or-error)
+                                    (assoc db
+                                      :message legal-placement-or-error)
+                                    :else (-> db
+                                              (update
+                                                :board
+                                                #(update-board-with-development
+                                                   development
+                                                   %
+                                                   tile
+                                                   current-player-name))
+                                              ((:on-placement development))
+                                              (stop-placing)))
+          post-placement-player-resources (get-resources-by-player
+                                            db current-player-name)
+          other-player-resources-used (resources-by-player-diff 
+                                        pre-placement-player-resources
+                                        post-placement-player-resources)]
+      updated-db)))
         
 
 (rf/reg-sub
