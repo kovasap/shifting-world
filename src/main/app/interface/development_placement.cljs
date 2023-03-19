@@ -173,6 +173,8 @@
     (merge-with - (get pre player-name) (get post player-name))))
 
 ; TODO update player points based on this
+; TODO make a wrapper function that adds these points to keep the code
+; contained.
 (defn points-for-sharing
   [resource-diff]
   (apply + (vals resource-diff)))
