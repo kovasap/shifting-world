@@ -17,6 +17,7 @@
             [app.interface.development-placement]
             [app.interface.config :refer [debug]]
             [app.interface.resources :refer [resources]]
+            [app.interface.scoring]
             [app.interface.orders :refer [orders]]
             [app.interface.utils :refer [get-only]]
             [cljs.pprint]

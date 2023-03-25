@@ -33,7 +33,6 @@
                           [row-idx col-idx :claimable-resources :poop]
                           1)))))))
 
-
 (defn accumulate-land-resources
   [{:keys [development] :as tile}]
   (if (and development (:land-accumulation development))
@@ -91,7 +90,7 @@
                          remaining-claimable-resources)
                        (rest candidate-tiles)
                        remaining-resources-to-drain))))
-              
+
 (defn apply-production-chain
   "Returns an updated board."
   [production-chain board {:keys [row-idx col-idx] :as tile}]
