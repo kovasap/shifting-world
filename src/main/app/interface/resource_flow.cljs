@@ -4,6 +4,43 @@
     [app.interface.board :refer [get-adjacent-tiles]]))
 
 
+(defn neg-pairs [m] (into {} (for [[k v] m :when (neg? v)] [k v])))
+(defn pos-pairs [m] (into {} (for [[k v] m :when (pos? v)] [k v])))
+
+
+(defn chain-active?
+  [board tile production-chain])
+
+
+(defn active-production-chains
+  "A collection of all production chains that are active for a tile"
+  [board {{:keys [production-chains]} :development :as tile}]
+  (if (nil? production-chains)
+    []
+    (filter #(chain-active? board tile %) production-chains)))
+  
+
+(defn provided-resources
+  "All resources this tile can provide to its neighbors (assuming nothing is
+  consumed)."
+  [board {:keys [development land] :as tile}]
+  (merge-with +
+              ; Resources from land accumulation (e.g. settlements)
+              ((:type land)) (:land-accumulation development) 
+              ; Resources from active production chains
+              (pos-pairs (active-production-chains board tile))))
+
+              
+
+
+(defn available-resources
+  "All resources this tile can provide to its neighbors, minus the resources
+  the neighbors are consuming."
+  [board tile])
+
+
+; ------------------------------------------
+
 (defn update-board-tile
   "Returns a new board with the first tile in the list updated."
   [board tiles update-fn]
@@ -41,9 +78,6 @@
    tile))
 
 
-(defn get-neg-pairs [m] (into {} (for [[k v] m :when (neg? v)] [k v])))
-(defn get-pos-pairs [m] (into {} (for [[k v] m :when (pos? v)] [k v])))
-  
 
 (defn resource-diff
   "Returns [claimable resources minus resources to drain,
@@ -51,11 +85,11 @@
   [claimable-resources resources-to-drain]
   (let [diff (merge-with +
                          claimable-resources
-                         (get-neg-pairs resources-to-drain))]
+                         (neg-pairs resources-to-drain))]
     [(into {}
            (for [[resource amount] diff]
              [resource (if (neg? amount) 0 amount)]))
-     (get-neg-pairs diff)]))
+     (neg-pairs diff)]))
 
 
 (assert (= [{:wood 0 :grain 1} {:wood -5}]
@@ -70,14 +104,14 @@
         available-resources (apply merge-with
                               +
                               (for [{:keys [production]} source-tiles]
-                                (get-pos-pairs production)))]
-    (get-neg-pairs (merge-with + available-resources production-chain))))
+                                (pos-pairs production)))]
+    (neg-pairs (merge-with + available-resources production-chain))))
 
 
 (defn drain-resources
   [board candidate-tiles resources-to-drain]
   (cond
-    (empty? (get-neg-pairs resources-to-drain))
+    (empty? (neg-pairs resources-to-drain))
     board  ; success!
     (empty? candidate-tiles)
     "No more tiles, draining impossible!"
@@ -101,7 +135,7 @@
         (drain-resources board source-tiles production-chain)
         [row-idx col-idx :production]
         ; Add the production from this chain to this tile.
-        #(merge-with + (get-pos-pairs production-chain) %))
+        #(merge-with + (pos-pairs production-chain) %))
       ; This production-chain is impossible, so we do nothing
       board)))
 
