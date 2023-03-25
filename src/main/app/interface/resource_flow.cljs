@@ -20,24 +20,21 @@
     (filter #(chain-active? board tile %) production-chains)))
   
 
-(defn provided-resources
-  "All resources this tile can provide to its neighbors (assuming nothing is
-  consumed)."
-  [board {:keys [development land] :as tile}]
-  (merge-with +
-              ; Resources from land accumulation (e.g. settlements)
-              ((:type land)) (:land-accumulation development) 
-              ; Resources from active production chains
-              (pos-pairs (active-production-chains board tile))))
-
-              
-
-
 (defn available-resources
   "All resources this tile can provide to its neighbors, minus the resources
   the neighbors are consuming."
-  [board tile])
+  [board {:keys [development land] :as tile}]
+  (apply merge-with
+    +
+    (concat [; Resources from land accumulation (e.g. settlements)
+             ((:type land) (:land-accumulation development))
+             ; Resources from active production chains
+             (pos-pairs (active-production-chains board tile))]
+            ; Resources consumed by neighboring production chains))
+            (for [adj-tile (get-adjacent-tiles board tile)]
+              (neg-pairs (active-production-chains board adj-tile))))))
 
+              
 
 ; ------------------------------------------
 
