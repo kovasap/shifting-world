@@ -47,6 +47,16 @@
                        (update-in db
                                   [:players (:current-player-idx db)]
                                   #(update % :points (partial + 5))))
+       :production-chains [{:stone -4}]
+       :max          6}
+      {:type         :nature-preserve
+       :letter       "N"
+       :description  "Worth 5 pts"
+       :on-placement (fn [db]
+                       (update-in db
+                                  [:players (:current-player-idx db)]
+                                  #(update % :points (partial + 5))))
+       :production-chains [{:water -2 :stone 1}]
        :max          6}
       {:type        :mill
        :letter      "M"
