@@ -1,6 +1,8 @@
 (ns app.interface.scoring
   (:require
    [re-frame.core :as rf]
+   [app.interface.developments :refer [developments]]
+   [app.interface.utils :refer [get-only]]
    [app.interface.board :refer [get-adjacent-tiles]]))
 
 ; TODO also add points for use of opponents resources
@@ -15,8 +17,18 @@
             0
             1))))))
 
+(defn get-development-points
+  [{:keys [board]} player-name]
+  (reduce +
+    (for [{:keys [controller-name development-type]} (flatten board)]
+      (let [{:keys [points]} (get-only developments :type development-type)]
+        (if (= controller-name player-name)
+          points
+          0)))))
+
 (rf/reg-sub
   :score-for-player
   (fn [db [_ player-name]]
-     (get-opponent-adjacency-points db player-name)))
+     (+ (get-opponent-adjacency-points db player-name)
+        (get-development-points db player-name))))
     

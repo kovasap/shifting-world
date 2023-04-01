@@ -1,6 +1,7 @@
 (ns app.interface.view.developments
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
+            [clojure.string :as st]
             [app.interface.utils :refer [get-only]]
             [app.interface.developments :refer [developments]]))
 
@@ -36,15 +37,16 @@
 (def unique-id (atom 1))
 (defn development-blueprint-view
   [development]
-  (let [n        (name (:type development))
+  (let [dev-name        (name (:type development))
         existing-num @(rf/subscribe [:num-developments (:type development)])
         current-player-name (:player-name @(rf/subscribe [:current-player]))
         placing  @(rf/subscribe [:placing])
         placing-current (= placing (:type development))]
     (swap! unique-id inc)
-    [:div {:key   (str n @unique-id) ; Required by react (otherwise we get a warning).
+    [:div {:key   (str dev-name @unique-id) ; Required by react (otherwise we get a warning).
            :style {:background "LightBlue" :text-align "left"
-                   :width "150px"
+                   :width "250px"
+                   :height "250px"
                    :flex 1
                    :padding "15px"
                    :font-weight (if placing-current "bold" "normal")
@@ -54,14 +56,18 @@
                         (rf/dispatch [:development/start-placing
                                       (:type development)
                                       current-player-name]))}
-     [:div "Place " n " " existing-num "/" (:max development)]
-     [:div (str "Land restriction: " (:valid-lands development))]
-     [:div (str "Chains: " (:production-chains development))]
+     [:div [:strong dev-name] " " existing-num "/" (:max development)]
+     [:div [:small "Place in " (st/join ", " (map name (:valid-lands development)))]]
+     [:div "Chains: " (for [chain (:production-chains development)]
+                        [:div {:key (str chain @unique-id)}
+                         (str chain)])]
      [:div (:description development)]]))
 
 
 (defn blueprints
   []
-  (into [:div {:style {:display "flex" :gap "10px"}}]
+  (into [:div {:style {:display  "grid"
+                       :grid-template-columns "auto auto"
+                       :grid-gap "10px"}}]
         (for [development @(rf/subscribe [:blueprints])]
           (development-blueprint-view development))))

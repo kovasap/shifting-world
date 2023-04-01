@@ -1,6 +1,7 @@
 (ns app.interface.view.map
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
+            [clojure.string :as st]
             [app.interface.config :refer [debug]]
             [app.interface.utils :refer [get-only]]
             [app.interface.view.developments :refer [development-desc-view]]))
@@ -72,7 +73,9 @@
       [:div {:style {:color (:color controller)}}
        (if controller-name (str controller-name "'s") nil)]
       [:div development-type]
-      [:div (str production)]]]))
+      [:div (st/join ", " (for [[k v] production
+                                :when (> v 0)]
+                           (str v " " (name k))))]]]))
 
 
 ; Defined as --s and --m in resources/public/css/board.css.  These values must

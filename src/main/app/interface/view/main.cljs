@@ -5,7 +5,6 @@
             ; [ring.middleware.anti-forgery]
             [app.interface.sente :refer [chsk-state login]]
             [app.interface.view.map :refer [board-view]]
-            [app.interface.view.orders :refer [order-view]]
             [app.interface.view.players :refer [player-card-view]]
             [app.interface.developments :refer [developments]]
             [app.interface.view.developments :refer [blueprints]]
@@ -40,8 +39,7 @@
   "Main view for the application."
   []
   (let [players @(rf/subscribe [:players])
-        db      @(rf/subscribe [:db-no-board])
-        orders  @(rf/subscribe [:orders])]
+        db      @(rf/subscribe [:db-no-board])]
     [:div @chsk-state]
     [:div.container
      #_(let [csrf-token (force
@@ -69,12 +67,8 @@
        (board-view)
        [:br]
        [:div @(rf/subscribe [:message])]
-       [:br]
-       (blueprints)]
-      (into [:div [:h1 "Orders"]] (for [order orders] (order-view order)))]
+       [:br]]
+      (blueprints)]
      [:div
       "TODO add diff of game state to show what just happened\n"
       [:pre (with-out-str (cljs.pprint/pprint db))]]]))
-
-
-
