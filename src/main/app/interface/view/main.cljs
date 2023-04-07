@@ -57,9 +57,7 @@
             (for [player players] (player-card-view player)))
       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])
                                         :style {:margin-left "auto"}}
-       "End Turn"]
-      [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-round])}
-       "End Round"]]
+       "End Turn"]]
      [:div {:style {:display  "grid"
                     :grid-template-columns "auto auto"
                     :grid-gap "15px"}}

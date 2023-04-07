@@ -9,4 +9,5 @@
      [:div {:style {:color color}}
       player-name
       (if (= player-name current-player-name) "*" "")]
-     [:div points " pts"]]))
+     (for [[k v] points]
+       [:div v " pts for " (name k)])]))

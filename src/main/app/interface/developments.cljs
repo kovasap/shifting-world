@@ -40,6 +40,11 @@
        :not-implemented true
        :on-placement (fn [db] db) ; TODO implement
        :max 6}
+      {:type         :carpenter
+       :letter       "C"
+       :description  "Transforms planks into points"
+       :production-chains [{:planks -1 :points 3}]
+       :max          2}
       {:type         :monument
        :letter       "T"
        :description  "Worth 5 pts"

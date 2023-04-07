@@ -80,16 +80,6 @@
       (send-game-state-to-server! new-db)
       new-db)))
 
-(rf/reg-event-db
-  :end-round
-  (undoable "Round End")
-  (fn [db [_]]
-    (-> db
-        ; TODO check if orders have been fulfilled and end the game if so.
-        (update :board update-tiles #(assoc % :worker-owner nil))
-        #_(update :board update-tiles accumulate-land-resources)
-        #_(update :board update-board-tiles accumulate-production-resources))))
-
 
 ;; -- Entry Point -------------------------------------------------------------
 

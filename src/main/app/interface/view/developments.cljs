@@ -37,30 +37,38 @@
 (def unique-id (atom 1))
 (defn development-blueprint-view
   [development]
-  (let [dev-name        (name (:type development))
-        existing-num @(rf/subscribe [:num-developments (:type development)])
+  (let [dev-name            (name (:type development))
+        existing-num        @(rf/subscribe [:num-developments
+                                            (:type development)])
         current-player-name (:player-name @(rf/subscribe [:current-player]))
-        placing  @(rf/subscribe [:placing])
-        placing-current (= placing (:type development))]
+        placing             @(rf/subscribe [:placing])
+        placing-current     (= placing (:type development))]
     (swap! unique-id inc)
-    [:div {:key   (str dev-name @unique-id) ; Required by react (otherwise we get a warning).
-           :style {:background "LightBlue" :text-align "left"
-                   :width "250px"
-                   :height "250px"
-                   :flex 1
-                   :padding "15px"
-                   :font-weight (if placing-current "bold" "normal")
-                   :border "2px solid black"}
+    [:div {:key      (str dev-name @unique-id) ; Required by react (otherwise
+                                               ; we get a warning).
+           :style    {:background  "LightBlue"
+                      :text-align  "left"
+                      :width       "250px"
+                      :height      "250px"
+                      :flex        1
+                      :padding     "15px"
+                      :font-weight (if placing-current "bold" "normal")
+                      :border      "2px solid black"}
            :on-click #(if placing-current
                         (rf/dispatch [:development/stop-placing])
                         (rf/dispatch [:development/start-placing
                                       (:type development)
                                       current-player-name]))}
      [:div [:strong dev-name] " " existing-num "/" (:max development)]
-     [:div [:small "Place in " (st/join ", " (map name (:valid-lands development)))]]
-     [:div "Chains: " (for [chain (:production-chains development)]
-                        [:div {:key (str chain @unique-id)}
-                         (str chain)])]
+     [:div
+      [:small
+       "Place in "
+       (st/join ", " (sort (map name (:valid-lands development))))]]
+     [:div
+      "Chains: "
+      (for [chain (:production-chains development)]
+        [:div {:key (str chain @unique-id)}
+         (str chain)])]
      [:div (:description development)]]))
 
 

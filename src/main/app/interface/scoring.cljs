@@ -26,9 +26,18 @@
           points
           0)))))
 
+(defn get-produced-points
+  [{:keys [board]} player-name]
+  (reduce +
+    (for [{:keys [production controller-name]} (flatten board)]
+      (if (= controller-name player-name)
+        (get production :points 0)
+        0))))
+
 (rf/reg-sub
   :score-for-player
   (fn [db [_ player-name]]
-     (+ (get-opponent-adjacency-points db player-name)
-        (get-development-points db player-name))))
+    {:adjacency (get-opponent-adjacency-points db player-name)
+     :developments (get-development-points db player-name)
+     :production (get-produced-points db player-name)}))
     
