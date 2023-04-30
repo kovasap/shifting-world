@@ -94,10 +94,19 @@ sudo apt install yarn
 curl -O https://download.clojure.org/install/linux-install-1.11.1.1273.sh
 chmod +x linux-install-1.11.1.1273.sh
 sudo ./linux-install-1.11.1.1273.sh
+sudo cp cljs-board-game.service /etc/systemd/system/
+systemctl enable cljs-board-game.service
+systemctl start cljs-board-game.service
+# To read logs:
+journalctl -u cljs-board-game.service
 ```
 
 Set up port forwarding on router to forward ports 3000, 5000, 9630 to the
 raspberry pi's IP address.
+
+Set up duckdns to point to the IP at https://www.whatismyip.com/.
+
+Now anyone can access the game at kovas.duckdns.org:3000!
 
 See info about setting up a static domain name at
 https://gist.github.com/taichikuji/6f4183c0af1f4a29e345b60910666468.
