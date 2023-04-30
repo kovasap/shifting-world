@@ -7,6 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=pi
+WorkingDirectory=/home/pi/cljs-board-game
 ExecStart=/home/pi/cljs-board-game/run.zsh
 
 [Install]

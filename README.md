@@ -96,6 +96,9 @@ chmod +x linux-install-1.11.1.1273.sh
 sudo ./linux-install-1.11.1.1273.sh
 sudo cp cljs-board-game.service /etc/systemd/system/
 systemctl enable cljs-board-game.service
+systemctl start cljs-board-game.service
+# To read logs:
+journalctl -u cljs-board-game.service
 ```
 
 Set up port forwarding on router to forward ports 3000, 5000, 9630 to the

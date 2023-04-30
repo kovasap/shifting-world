@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-print "Go to http://localhost:8700 to view the application!"
+print "Go to http://localhost:3000 to view the application!"
 
 # See https://unix.stackexchange.com/a/137503
 jobs=()
