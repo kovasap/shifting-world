@@ -6,7 +6,10 @@ print "Go to http://localhost:8700 to view the application!"
 jobs=()
 trap '((#jobs == 0)) || kill $jobs' EXIT HUP TERM INT
 
-clj -M:frontend & jobs+=($!)
+# raspberrypi doesn't have enough memory to run both servers at once.
+if [[ $(hostname) != *raspberrypi* ]]; then
+  clj -M:frontend & jobs+=($!)
+fi
 clj -M:api & jobs+=($!)
 
 wait

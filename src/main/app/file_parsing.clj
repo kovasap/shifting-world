@@ -1,7 +1,7 @@
 (ns app.file-parsing
   (:require [clojure.java.io :as io]
             [clojure.data.csv :as csv]
-            [clojure.string :refer [split replace]]))
+            [clojure.string :as st]))
 
 (def FilePath :string)
 
@@ -55,10 +55,10 @@
                         :well-pos
                         :???
                         :???]
-                       (split (slurp filepath) #"\n"))]
+                       (st/split (slurp filepath) #"\n"))]
         (-> experiment
             (dissoc :blank :???)
-            (assoc :id (replace (:id-str experiment) #"expID:" ""))))
+            (assoc :id (st/replace (:id-str experiment) #"expID:" ""))))
     {}))
 
 
