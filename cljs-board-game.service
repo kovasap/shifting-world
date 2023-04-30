@@ -1,0 +1,13 @@
+[Unit]
+Description=A CLJS Board Game
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStart=/home/pi/cljs-board-game/run.zsh
+
+[Install]
+WantedBy=multi-user.target 
