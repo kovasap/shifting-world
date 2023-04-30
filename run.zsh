@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 print "Go to http://localhost:3000 to view the application!"
+print $(pwd)
 
 # See https://unix.stackexchange.com/a/137503
 jobs=()
