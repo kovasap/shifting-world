@@ -84,6 +84,18 @@ sudo ufw allow 5000
 sudo ufw allow 9630
 ```
 
+### On Raspberry Pi
+
+```
+curl -sL https://deb.nodesource.com/setup_18.x | sudo bash -
+sudo apt-get install nodejs
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+sudo apt install yarn
+curl -O https://download.clojure.org/install/linux-install-1.11.1.1273.sh
+chmod +x linux-install-1.11.1.1273.sh
+sudo ./linux-install-1.11.1.1273.sh
+```
+
 ### Individual Server Startup
 
 You can start the frontend service with:

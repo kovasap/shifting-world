@@ -83,7 +83,7 @@
 (defn parse-experiments
   {:malli/schema [:=> [:cat FilePath] [:sequential Experiment]]}
   [root-dir]
-  (for [dir #p (get-experiment-dirs root-dir)]
+  (for [dir (get-experiment-dirs root-dir)]
     (parse-experiment-dir dir)))
 
 (defn parse-files
