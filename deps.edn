@@ -45,6 +45,10 @@
                         "watch" ":app"]
             :extra-deps {binaryage/devtools {:mvn/version "1.0.6"}}}
 
+           :frontend-release
+           {:main-opts ["-m" "shadow.cljs.devtools.cli"
+                        "release" ":app"]}
+
            :repl/conjure
            {:extra-deps {nrepl/nrepl       {:mvn/version "0.9.0"}
                          cider/cider-nrepl {:mvn/version "0.28.4"}}
