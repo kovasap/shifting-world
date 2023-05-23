@@ -11,13 +11,13 @@
 
 
 (defn control-any-tiles?
-  [board player-name]
+  [board player-idx]
   (> (count
       (reduce concat
         (for [column board]
-          (for [{:keys [controller-name]} column
-                :when (= controller-name player-name)]
-            controller-name))))
+          (for [{:keys [controller-idx]} column
+                :when (= controller-idx player-idx)]
+            controller-idx))))
      0))
 
 
@@ -51,7 +51,7 @@
         (into {}
               (for [chain (:production-chains development)]
                 [chain (unmet-resources chain (:board db) tile)]))
-        current-player-name (:player-name (get-current-player db))]
+        current-player-idx (:idx (get-current-player db))]
     (cond
       (not (nil? (:development-type tile)))
       "Tile is already occupied!"
@@ -61,11 +61,11 @@
            chains-to-unmet-resources)
       (not (contains? valid-lands (:type (:land tile))))
       (str "Invalid land type, must be one of " valid-lands)
-      (and (control-any-tiles? (:board db) current-player-name)
+      (and (control-any-tiles? (:board db) current-player-idx)
            (not
              (adjacent-to-controlled-developments? (:board db)
                                                    tile
-                                                   (get-current-player db))))
+                                                   current-player-idx)))
       "Must adjacent to developments you own, unless you own no tiles!"
       (>= (get-num-developments (:board db) development-type)
           (:max development))
@@ -136,7 +136,8 @@
   [development
    board
    {:keys [row-idx col-idx land] :as tile}
-   current-player-name]
+   current-player-idx]
+  (prn "placing dev for player" current-player-idx)
   (let [update-all-production (apply comp
                                 (for [chain (:production-chains development)]
                                   #(apply-production-chain chain % tile)))]
@@ -146,7 +147,7 @@
           #(assoc %
              :development-type (:type development)
              :production       ((:type land) (:land-production development))
-             :controller-name  current-player-name))
+             :controller-idx  current-player-idx))
         (update-all-production))))
 
 
@@ -154,8 +155,8 @@
   :development/place
   (undoable "Development Placement")
   (fn [db [_ {:keys [legal-placement-or-error] :as tile}]]
-    (let [current-player-name (:player-name (get-current-player db))
-          development         (get-only developments :type (:placing db))]
+    (let [current-player-idx (:idx (get-current-player db))
+          development        (get-only developments :type (:placing db))]
       (cond (string? legal-placement-or-error)
             (assoc db
               :message legal-placement-or-error)
@@ -167,7 +168,7 @@
                      development
                      %
                      tile
-                     current-player-name))
+                     current-player-idx))
                 ((:on-placement development))
                 (stop-placing))))))
         

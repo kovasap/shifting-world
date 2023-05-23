@@ -48,18 +48,18 @@
          args))
 
 (defn tile-from-str
-  [row-idx col-idx [tile-letter bonus-letter]]
+  [row-idx col-idx [tile-letter bonus-letter player-number]]
   (let [tile (base-tile {:row-idx row-idx
                          :col-idx col-idx
                          :land    (get-only lands :letter tile-letter)})
-        neutral-development (get-only developments :letter bonus-letter)]
-    (cond
-     neutral-development
-     (assoc tile :development-type (:type neutral-development)
-                 :production ((:type (:land tile))
-                              (:land-production neutral-development))
-                 :owner "neutral")
-     :else tile)))
+        development (get-only developments :letter bonus-letter)]
+    (cond-> tile
+     development
+     (assoc :development-type (:type development)
+            :production ((:type (:land tile))
+                         (:land-production development)))
+     (not (= player-number " "))
+     (assoc :controller-idx (js/parseInt player-number)))))
 
 (defn parse-board-str
   "Returns 2d array of tile maps."
@@ -87,11 +87,17 @@
 ; TODO have each tile start with one resource of it's type
 (def manual-board
   (parse-board-str
-    "F   M   M   F   F   F   F  
-     M   W   MS  FS  F   F   F
-     W   M   F   F   F   F   F
-     W   M   M   F   F   F   F
-     S   F   F   F   F   F   F"))
+    "F   M   M   F   F   P   P  
+     M   W   M   F   F   P   P
+     W   MS0 F   F   F   PS1 P
+     W   M   M   F   F   P   P
+     W   M   M   F   F   F   P
+     W   M   MS  FS  F   F   F
+     W   M   M   F   W   F   F
+     W   M   M   W   W   W   F
+     S   M   S   S   W   F   F
+     S   SS2 S   S   S   FS3 F
+     S   S   S   S   S   F   F"))
 
 
 (defn generate-perlin-board

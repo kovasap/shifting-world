@@ -16,7 +16,6 @@
   (difference (set (map :type lands)) #{:water :void}))
 
 ; TODO add:
-;  - development that's just worth points
 ;  - railroad or crossroads that can connect production chain tiles
 ; These are references to development that are not to be copied, just
 ; referenced via their :type or :letter.  This is because they may contain
@@ -31,14 +30,11 @@
                          :plains   {:food 2}
                          :mountain {:stone 2}
                          :water    {:water 2}}
-       :max         6}
-      {:type :hideout
+       :max         12}
+      {:type :bandit-hideout
        :letter "H"
-       :description
-       "All adjacent settlements accumulate one less resource per
-                            turn (bandits are stealing them)."
-       :not-implemented true
-       :on-placement (fn [db] db) ; TODO implement
+       :description "Turns points into bread"
+       :production-chains [{:points -2 :bread 1}]
        :max 6}
       {:type         :carpenter
        :letter       "C"
@@ -50,13 +46,13 @@
        :description  "Worth 5 pts"
        :points       5
        :production-chains [{:stone -4}]
-       :max          6}
+       :max          2}
       {:type         :nature-preserve
        :letter       "N"
        :description  "Worth 5 pts"
        :points       5
        :production-chains [{:water -2 :stone 1}]
-       :max          6}
+       :max          2}
       {:type        :mill
        :letter      "M"
        :description "Produces planks from wood AND/OR flour from grain."
@@ -75,22 +71,6 @@
        :not-implemented true
        :valid-lands #{:plains}
        :max 6}
-      #_{:type :capitol
-         :description
-         "Take starting player and get 1 water. Worth 2 pts at the end
-                            of the game."
-         :is-legal-placement? (fn [db tile] (nil? (:development tile)))
-         :use (fn [db instance tile]
-                (let [current-player (get-current-player db)]
-                  (-> db
-                      (update :players
-                              (fn [ps]
-                                (into [current-player]
-                                      (remove #(= % current-player) ps))))
-                      (update-resources (:current-player-idx db) {:water 1}))))
-         :max 3
-         :cost {:stone -5}
-         :tax {}}
       {:type        :library
        :description "Can use opponent development without paying them a VP"
        :valid-lands #{:mountain}

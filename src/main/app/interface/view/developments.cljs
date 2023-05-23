@@ -74,8 +74,12 @@
 
 (defn blueprints
   []
-  (into [:div {:style {:display  "grid"
-                       :grid-template-columns "auto auto"
-                       :grid-gap "10px"}}]
-        (for [development @(rf/subscribe [:blueprints])]
-          (development-blueprint-view development))))
+  [:div
+    [:div "The game ends when all developments are placed!"]
+    [:br]
+    (into [:div {:style {:display  "grid"
+                         :grid-template-columns "auto auto"
+                         :margin-bottom "100%"
+                         :grid-gap "10px"}}]
+          (for [development (sort-by :type @(rf/subscribe [:blueprints]))]
+            (development-blueprint-view development)))])

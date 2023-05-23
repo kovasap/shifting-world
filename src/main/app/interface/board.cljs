@@ -41,8 +41,8 @@
     (get-adjacent-tiles (:board db) tile)))
 
 (defn adjacent-to-controlled-developments?
-  [board tile player]
-  (not (nil? (some #(= (:controller-name %) (:player-name player))
+  [board tile player-idx]
+  (not (nil? (some #(= (:controller-idx %) player-idx)
                    (get-adjacent-tiles board tile)))))
 
 (defn update-adjacent-tiles

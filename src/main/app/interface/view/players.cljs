@@ -10,4 +10,4 @@
       player-name
       (if (= player-name current-player-name) "*" "")]
      (for [[k v] points]
-       [:div v " pts for " (name k)])]))
+       [:div {:key (str player-name (name k))} v " pts for " (name k)])]))

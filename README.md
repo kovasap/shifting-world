@@ -2,34 +2,7 @@
 
 ## Game Flow
 
-### Phase 1: Drafting blueprints
-
-Each player draws 5 blueprint cards, each of which suggests a building type they
-can build.
-Then these are drafted around the table, with the last card in the draft removed
-from the game (so everyone ends up with 4 blueprints).
-
-This still needs to be implemented.
-
-### Phase 2: Gameplay
-
-Players take turns placing a worker on the board, either spending resources to
-build a blueprint or taking the action a currently built building allows them to
-take.
-If any resources are accumulated on the tile with the worker, the player takes
-them into their supply.
-Doing this on an opponents tile means you will pay a tax of X% of the resources
-on the tile to them.
-
-You can also place your worker on an order to claim if, if you meet the
-requirements and can pay for it.
-
-Once everyone has placed all their workers, this rounds ends, all tiles
-accumulate resources, and a new round starts.
-
-### Phase 3: Game End
-
-Once a player has completed 3 orders, the game ends.
+Players take turns placing developments.  The player with the highest score wins!
 
 ### Stuff to Add
 
@@ -59,6 +32,7 @@ Once a player has completed 3 orders, the game ends.
    resources in a building.
    the building with the most resources invested will take from buildings first
    when accumulating at the end of a rounds.
+ - Add better logging: https://github.com/ptaoussanis/sente/issues/416
 
 ## Setup
 

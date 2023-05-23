@@ -58,6 +58,7 @@
       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])
                                         :style {:margin-left "auto"}}
        "End Turn"]]
+     [:br]
      [:div {:style {:display  "grid"
                     :grid-template-columns "auto auto"
                     :grid-gap "15px"}}

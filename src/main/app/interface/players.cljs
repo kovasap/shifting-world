@@ -4,7 +4,7 @@
 (defn player-data
   [i player-name]
   {:player-name     player-name
-   :index           i
+   :idx             i
    :color           (get ["blue" "red" "purple" "black"] i)
    :points          0})
 

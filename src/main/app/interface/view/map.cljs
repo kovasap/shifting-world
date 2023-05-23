@@ -18,14 +18,14 @@
            development-type
            legal-placement-or-error
            production
-           controller-name]
+           controller-idx]
     :as   tile}]
   (let [adjacent-tiles   @(rf/subscribe [:adjacent-tiles tile])
         hovered          (get-in @tile-hover-state [row-idx col-idx])
         legal-placement? (not (string? legal-placement-or-error))
         controller       (get-only @(rf/subscribe [:players])
-                                   :player-name
-                                   controller-name)]
+                                   :idx
+                                   controller-idx)]
     [:div.tile
      {:style         {:font-size  "12px"
                       :text-align "center"
@@ -71,7 +71,7 @@
        ", "
        col-idx]
       [:div {:style {:color (:color controller)}}
-       (if controller-name (str controller-name "'s") nil)]
+       (if controller (str (:player-name controller) "'s") nil)]
       [:div development-type]
       [:div (st/join ", " (for [[k v] production
                                 :when (> v 0)]

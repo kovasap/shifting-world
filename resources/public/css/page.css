@@ -1,4 +1,5 @@
 body {
-  background-color: khaki;
+  --bs-body-color: black;
+  --bs-body-bg: khaki;
   width: 1000px;
 }
