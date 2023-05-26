@@ -20,7 +20,7 @@
        ?csrf-token
        {:type :auto
         :packer :edn
-        ; :host "localhost"
+        :host config/api-host
         :port config/api-port})] ; e/o #{:auto :ajax :ws}
   (def chsk       chsk)
   (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
