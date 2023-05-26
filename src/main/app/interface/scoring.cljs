@@ -3,7 +3,6 @@
    [re-frame.core :as rf]
    [app.interface.board :refer [get-adjacent-tiles]]))
 
-; TODO also add points for use of opponents resources
 (defn get-opponent-adjacency-points
   [{:keys [board]} player-idx]
   (reduce +
@@ -23,9 +22,15 @@
         (get production :points 0)
         0))))
 
+(defn get-largest-area-points
+  [{:keys [board]} player-idx]
+  0)
+
+
 (rf/reg-sub
   :score-for-player
   (fn [db [_ player-idx]]
     {:adjacency (get-opponent-adjacency-points db player-idx)
-     :production (get-produced-points db player-idx)}))
+     :production (get-produced-points db player-idx)
+     :largest-area (get-largest-area-points db player-idx)}))
     

@@ -69,12 +69,23 @@
        :description  "Makes water and points"
        :production-chains [{:water 1 :points 1}]
        :max          2}
+      {:type         :throne
+       :letter       "H"
+       :description  "Worth 10 pts if you have the most tiles of at least 3 land types"
+       :production-chains [{:stone -2}]
+       :max          2}
       ; ----------------- Point Eaters ---------------------------------------
       {:type :bandit-hideout
        :letter "H"
        :description "Turns points into bread"
        :production-chains [{:points -2 :bread 1}]
        :max 6}
+      ; ----------------- Misc ---------------------------------------
+      {:type :road
+       :letter "R"
+       :description "Does nothing, but extends your buildable area"
+       :production-chains [{:wood -1} {:stone -1}]
+       :max 12}
       {:type :trading-post
        :description
        "Trade resources 2 to 1 according to what trades are available
