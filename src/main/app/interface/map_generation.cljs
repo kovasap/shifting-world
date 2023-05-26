@@ -59,7 +59,10 @@
             :production ((:type (:land tile))
                          (:land-production development)))
      (not (= player-number " "))
-     (assoc :controller-idx (js/parseInt player-number)))))
+     (assoc :controller-idx (let [player-number-int (js/parseInt player-number)]
+                              (if (js/isNaN player-number-int)
+                                nil
+                                player-number-int))))))
 
 (defn parse-board-str
   "Returns 2d array of tile maps."

@@ -2,9 +2,9 @@
   (:require [re-frame.core :as rf]))
 
 (defn player-card-view
-  [{:keys [player-name color]}]
+  [{:keys [player-name idx color]}]
   (let [current-player-name (:player-name @(rf/subscribe [:current-player]))
-        points @(rf/subscribe [:score-for-player player-name])]
+        points @(rf/subscribe [:score-for-player idx])]
     [:div
      [:div {:style {:color color}}
       player-name

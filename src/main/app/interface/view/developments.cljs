@@ -75,7 +75,16 @@
 (defn blueprints
   []
   [:div
-    [:div "The game ends when all developments are placed!"]
+    [:div "Take turns placing developments by clicking on the one you want to "
+          "place then clicking on a valid (highlighted) location to place it. "
+          "You can cancel by clicking on the development again. "
+          "Click \"End Turn\" to advance to the next player. "]
+    [:br]
+    [:div "You get 2 points for each adjacent development you have to other "
+          "players."]
+    [:br]
+    [:div "The game ends when all developments are placed "
+          "(note the limit next to each development name)!"]
     [:br]
     (into [:div {:style {:display  "grid"
                          :grid-template-columns "auto auto"

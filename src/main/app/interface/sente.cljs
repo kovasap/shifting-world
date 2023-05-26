@@ -12,6 +12,7 @@
     (.getAttribute el "data-csrf-token")))
 
 (prn "TOKEN" ?csrf-token)
+(prn "HOST" config/api-host)
 
 
 (let [{:keys [chsk ch-recv send-fn state]}

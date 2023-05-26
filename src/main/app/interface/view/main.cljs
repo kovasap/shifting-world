@@ -49,7 +49,7 @@
      ; [login-field]
      [:div {:style {:display "flex"}}
       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:game/setup])}
-       "Setup Game"]
+       "Reset Game"]
       [undo-button]
       (into [:div {:style {:display "flex" 
                            :width "100%"
@@ -57,7 +57,7 @@
             (for [player players] (player-card-view player)))
       [:button.btn.btn-outline-primary {:on-click #(rf/dispatch [:end-turn])
                                         :style {:margin-left "auto"}}
-       "End Turn"]]
+       [:b "End Turn "] "and Send to Server"]]
      [:br]
      [:div {:style {:display  "grid"
                     :grid-template-columns "auto auto"
