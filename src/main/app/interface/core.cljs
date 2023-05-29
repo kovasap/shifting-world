@@ -32,7 +32,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Setup
 
-(def available-developments 8)
+(def available-developments (count developments))
 
 (defn select-developments
   []
@@ -69,6 +69,17 @@
     (:message db)))
 
 ;; ----------------------------------------------------------------------------
+;; End of Game
+
+(defn is-game-over?
+  [db]
+  false)
+
+(defn end-game
+  [db]
+  db)
+
+;; ----------------------------------------------------------------------------
 ;; End of Turn
 
 (rf/reg-event-db
@@ -78,7 +89,9 @@
     (let [new-db (-> db
                    (assoc :current-player-idx (next-player-idx db)))]
       (send-game-state-to-server! new-db)
-      new-db)))
+      (if (is-game-over? new-db)
+        (end-game new-db)
+        new-db))))
 
 
 ;; -- Entry Point -------------------------------------------------------------

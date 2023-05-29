@@ -90,17 +90,17 @@
 ; TODO have each tile start with one resource of it's type
 (def manual-board
   (parse-board-str
-    "F   M   M   F   F   P   P  
-     M   W   M   F   F   P   P
-     W   MS0 F   F   F   PS1 P
-     W   M   M   F   F   P   P
-     W   M   M   F   F   F   P
-     W   M   MS  FS  F   F   F
-     W   M   M   F   W   F   F
-     W   M   M   W   W   W   F
-     S   M   S   S   W   F   F
-     S   SS2 S   S   S   FS3 F
-     S   S   S   S   S   F   F"))
+    "F   M   M   F   F   P   P   W  
+     W   W   M   F   F   P   P   W
+     W   MS0 F   F   F   PS1 P   W
+     W   M   M   F   F   P   P   W
+     W   M   M   F   F   F   P   W
+     W   M   MS  FS  F   F   F   W
+     W   M   M   F   W   F   F   W
+     W   M   M   W   W   W   F   W
+     S   M   S   S   W   F   F   W
+     S   SS2 S   S   S   FS3 F   W
+     S   S   S   S   S   F   F   W"))
 
 
 (defn generate-perlin-board

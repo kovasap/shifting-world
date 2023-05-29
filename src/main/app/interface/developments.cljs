@@ -15,6 +15,12 @@
 (def generally-valid-lands
   (difference (set (map :type lands)) #{:water :void}))
 
+(def basic-resources
+  [:wood :grain :stone :water :fossils])
+
+(def refined-resources
+  [:planks :bread :flour :charcoal])
+
 ; TODO add:
 ;  - railroad or crossroads that can connect production chain tiles
 ; These are references to development that are not to be copied, just
@@ -29,6 +35,7 @@
        :land-production {:forest   {:wood 2}
                          :plains   {:grain 2}
                          :mountain {:stone 2}
+                         :desert   {:fossils 1}
                          :water    {:water 2}}
        :max         12}
       ; ----------------- Resource Generators -------------------
@@ -40,7 +47,7 @@
       {:type        :oven
        :letter      "O"
        :description "Produces charcoal from wood AND/OR bread from flour"
-       :production-chains [{:wood -1 :charcoal 1} {:flour -1 :bread 1}]
+       :production-chains [{:wood -1 :charcoal 1} {:flour -1 :bread 4}]
        :valid-lands #{:plains}
        :max         6}
       ; ----------------- Point Generators --------------------
@@ -70,10 +77,23 @@
        :production-chains [{:water 1 :points 1}]
        :max          2}
       {:type         :throne
-       :letter       "H"
+       :letter       "E"
        :description  "Worth 10 pts if you have the most tiles of at least 3 land types"
        :production-chains [{:stone -2}]
        :max          2}
+      ; TODO make this an infinite sink?
+      {:type         :port
+       :letter       "P"
+       :description  "Resources to points"
+       :production-chains (into [] (for [resource refined-resources]
+                                     {resource -2 :points 2}))
+       :valid-lands #{:water}
+       :max          2}
+      {:type         :house
+       :letter       "H"
+       :description  "Bread to points"
+       :production-chains [{:bread -1 :points 2}]
+       :max          6}
       ; ----------------- Point Eaters ---------------------------------------
       {:type :bandit-hideout
        :letter "H"
