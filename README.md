@@ -33,6 +33,7 @@ Players take turns placing developments.  The player with the highest score wins
    the building with the most resources invested will take from buildings first
    when accumulating at the end of a rounds.
  - Add better logging: https://github.com/ptaoussanis/sente/issues/416
+ - Possibly host on glitch.com
 
 ## Setup
 
