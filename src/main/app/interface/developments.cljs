@@ -51,61 +51,63 @@
        :valid-lands #{:plains}
        :max         6}
       ; ----------------- Point Generators --------------------
-      {:type         :monument
-       :letter       "T"
-       :description  "Worth 5 pts"
+      {:type        :monument
+       :letter      "T"
+       :description "Worth 5 pts"
        :production-chains [{:stone -4 :points 5}]
-       :max          2}
-      {:type         :nature-preserve
-       :letter       "N"
-       :description  "Worth 5 pts"
+       :max         2}
+      {:type        :nature-preserve
+       :letter      "N"
+       :description "Worth 5 pts"
        :production-chains [{:water -2 :points 5}]
-       :max          2}
-      {:type         :carpenter
-       :letter       "C"
-       :description  "Transforms planks into points"
+       :max         2}
+      {:type        :carpenter
+       :letter      "C"
+       :description "Transforms planks into points"
        :production-chains [{:planks -1 :points 3}]
-       :max          2}
-      {:type         :crossroads
-       :letter       "X"
-       :description  "Worth 1 points for each adjacent development."
+       :max         2}
+      {:type        :crossroads
+       :letter      "X"
+       :description "Worth 1 points for each adjacent development."
        :not-implemented true
-       :max          2}
-      {:type         :oasis
-       :letter       "A"
-       :description  "Makes water and points"
+       :max         2}
+      {:type        :oasis
+       :letter      "A"
+       :description "Makes water and points"
        :production-chains [{:water 1 :points 1}]
-       :max          2}
-      {:type         :throne
-       :letter       "E"
-       :description  "Worth 10 pts if you have the most tiles of at least 3 land types"
+       :max         2}
+      {:type :throne
+       :letter "E"
+       :description
+       "Worth 10 pts if you have the most tiles of at least 3 land types"
        :production-chains [{:stone -2}]
-       :max          2}
+       :max 2}
       ; TODO make this an infinite sink?
-      {:type         :port
-       :letter       "P"
-       :description  "Resources to points"
-       :production-chains (into [] (for [resource refined-resources]
-                                     {resource -2 :points 2}))
+      {:type        :port
+       :letter      "P"
+       :description "Resources to points"
+       :production-chains (into []
+                                (for [resource refined-resources]
+                                  {resource -2 :points 2}))
        :valid-lands #{:water}
-       :max          2}
-      {:type         :house
-       :letter       "H"
-       :description  "Bread to points"
+       :max         2}
+      {:type        :house
+       :letter      "H"
+       :description "Bread to points"
        :production-chains [{:bread -1 :points 2}]
-       :max          6}
+       :max         6}
       ; ----------------- Point Eaters ---------------------------------------
-      {:type :bandit-hideout
-       :letter "H"
+      {:type        :bandit-hideout
+       :letter      "H"
        :description "Turns points into bread"
        :production-chains [{:points -2 :bread 1}]
-       :max 6}
+       :max         6}
       ; ----------------- Misc ---------------------------------------
-      {:type :road
-       :letter "R"
+      {:type        :road
+       :letter      "R"
        :description "Does nothing, but extends your buildable area"
        :production-chains [{:wood -1} {:stone -1}]
-       :max 12}
+       :max         12}
       {:type :trading-post
        :description
        "Trade resources 2 to 1 according to what trades are available

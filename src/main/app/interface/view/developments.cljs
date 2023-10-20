@@ -49,7 +49,7 @@
            :style    {:background  "LightBlue"
                       :text-align  "left"
                       :width       "250px"
-                      :height      "250px"
+                      :height      "300px"
                       :flex        1
                       :padding     "15px"
                       :font-weight (if placing-current "bold" "normal")
@@ -64,12 +64,21 @@
       [:small
        "Place in "
        (st/join ", " (sort (map name (:valid-lands development))))]]
-     [:div
-      "Chains: "
-      (for [chain (:production-chains development)]
-        [:div {:key (str chain @unique-id)}
-         (str chain)])]
-     [:div (:description development)]]))
+     [:div (:description development)]
+     (if (:production-chains development)
+       [:div
+        "Chains: "
+        (for [chain (:production-chains development)]
+          [:div {:key (str chain @unique-id)}
+           (str chain)])]
+       nil)
+     (if (:land-production development)
+       [:div
+         "Harvests: "
+         (for [[land production] (:land-production development)]
+           [:div {:key (str land @unique-id)}
+            (str land " : " production)])]
+       nil)]))
 
 
 (defn blueprints
