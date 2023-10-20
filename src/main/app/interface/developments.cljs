@@ -108,6 +108,11 @@
        :description "Does nothing, but extends your buildable area"
        :production-chains [{:wood -1} {:stone -1}]
        :max         12}
+      {:type        :marketplace
+       :letter      "K"
+       :description "Moves all resources from adjacent tiles to itself."
+       :not-implemented true
+       :max         4}
       {:type :trading-post
        :description
        "Trade resources 2 to 1 according to what trades are available

@@ -36,8 +36,7 @@
 
 (defn select-developments
   []
-  (conj (take available-developments
-              (shuffle (filter #(not (:not-implemented %)) developments)))
+  (conj (take available-developments (shuffle developments))
         (get-only developments :type :settlement)))
 
 (rf/reg-event-db

@@ -46,7 +46,9 @@
     (swap! unique-id inc)
     [:div {:key      (str dev-name @unique-id) ; Required by react (otherwise
                                                ; we get a warning).
-           :style    {:background  "LightBlue"
+           :style    {:background  (if (:not-implemented development)
+                                     "LightGrey"
+                                     "LightBlue")
                       :text-align  "left"
                       :width       "250px"
                       :height      "300px"
@@ -54,11 +56,13 @@
                       :padding     "15px"
                       :font-weight (if placing-current "bold" "normal")
                       :border      "2px solid black"}
-           :on-click #(if placing-current
-                        (rf/dispatch [:development/stop-placing])
-                        (rf/dispatch [:development/start-placing
-                                      (:type development)
-                                      current-player-name]))}
+           :on-click (if (:not-implemented development)
+                        #(prn "not implemented")
+                        #(if placing-current
+                                (rf/dispatch [:development/stop-placing])
+                                (rf/dispatch [:development/start-placing
+                                              (:type development)
+                                              current-player-name])))}
      [:div [:strong dev-name] " " existing-num "/" (:max development)]
      [:div
       [:small
