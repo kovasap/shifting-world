@@ -101,23 +101,27 @@
   [developments]
   (concat
     ; Development nodes
-    (mapv (fn [{:keys [letter type]}] {:data {:id letter :label type}})
+    (mapv (fn [{:keys [letter type]}]
+            {:data {:id letter :label type :type :development}})
       developments)
     ; Edges
     (reduce concat
-      (mapv (fn [{:keys [production-chains letter]}]
-              (reduce concat
-                      (for [production-chain production-chains]
-                        (mapv (fn [[k v]]
-                                {:data {:id     (str (name k) letter)
-                                        :source (if (> v 0) letter (name k))
-                                        :target (if (> v 0) (name k) letter)
-                                        :label  (str v)}})
-                          production-chain))))
+      (mapv
+        (fn [{:keys [production-chains letter]}]
+          (reduce concat
+            (for [production-chain production-chains]
+              (mapv (fn [[k v]]
+                      {:data {:id     (str (name k) letter)
+                              :source (if (> v 0) letter (name k))
+                              :target (if (> v 0) (name k) letter)
+                              :label  (str v)}})
+                production-chain))))
         developments))
     ; Resource Nodes
     (mapv (fn [resource]
-            {:data {:id (name resource) :label (name resource)}})
+            {:data {:id    (name resource)
+                    :label (name resource)
+                    :type  :resource}})
       resources)))
   
 
@@ -128,44 +132,37 @@
   [developments-atom]
   (let [graph-element-id "graph"]
     (r/create-class
-      {:reagent-render      (fn [_]
-                              ; dummy deref to trigger re-render on change
-                              @developments-atom
-                              [:div
-                               "Cytoscape view:"
-                               [:div {:id    graph-element-id
-                                      :style {:height "200px"
-                                              :width  "200px"}}]])
+      {:reagent-render (fn [_]
+                         ; dummy deref to trigger re-render on change
+                         @developments-atom
+                         [:div
+                          "Cytoscape view:"
+                          [:div {:id    graph-element-id
+                                 :style {:height "400px" :width "600px"}}]])
        ; We use this react lifecycle function because our graph-element-id div
        ; must exist before we call the cytoscape functionality that populates
        ; it.
-       :component-did-update (fn [_]
-                               (cytoscape
-                                 (clj->js
-                                   {:style     [{:selector "node"
-                                                 :style    {:background-color
-                                                            "#666"
-                                                            :label
-                                                            "data(label)"}}
-                                                {:selector "edge"
-                                                 :style    {:width 2
-                                                            :line-color "#ccc"
-                                                            :target-arrow-color
-                                                            "#ccc"
-                                                            :curve-style
-                                                            "bezier"
-                                                            :target-arrow-shape
-                                                            "triangle"
-                                                            :label
-                                                            "data(label)"}}]
-                                    :layout    {:name "circle"}
-                                    :userZoomingEnabled false
-                                    :userPanningEnabled false
-                                    :boxSelectionEnabled false
-                                    :container (js/document.getElementById
-                                                 graph-element-id)
-                                    :elements  (make-development-graph
-                                                 @developments-atom)})))})))
+       :component-did-update
+       (fn [_]
+         (cytoscape
+           (clj->js
+             {:style     [{:selector "node"
+                           :style    {:background-color "#666"
+                                      :label "data(label)"}}
+                          {:selector "edge"
+                           :style    {:width       2
+                                      :line-color  "#ccc"
+                                      :target-arrow-color "#ccc"
+                                      :curve-style "bezier"
+                                      :target-arrow-shape "triangle"
+                                      :label       "data(label)"}}]
+              :layout    {:name       "cose"
+                          :nodeDimensionsIncludeLabels true}
+              :userZoomingEnabled false
+              :userPanningEnabled false
+              :boxSelectionEnabled false
+              :container (js/document.getElementById graph-element-id)
+              :elements  (make-development-graph @developments-atom)})))})))
        
 (defn blueprints
   []
