@@ -6,6 +6,7 @@ Players take turns placing developments.  The player with the highest score wins
 
 ### Stuff to Add
 
+ - make monument less good, or more expensive
  - scroll developments separately from the board
  - show a flow chart for how developments chain into each other
  - Make it so orders ARE developments that have specific requirements to be
