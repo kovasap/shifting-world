@@ -54,7 +54,7 @@
       {:type        :monument
        :letter      "T"
        :description "Worth 5 pts"
-       :production-chains [{:stone -4 :points 5}]
+       :production-chains [{:stone -6 :points 5}]
        :max         2}
       {:type        :nature-preserve
        :letter      "N"

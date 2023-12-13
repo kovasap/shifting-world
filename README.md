@@ -16,8 +16,6 @@ The player with the highest score at the end wins!
 
 In order of priority.
 
-1. scroll developments separately from the board
-1. make monument less good, or more expensive
 1. Random map generation that works well given the developments that exist.
    Every game should feel like a new puzzle to solve.
 1. show a flow chart for how developments chain into each other somewhere

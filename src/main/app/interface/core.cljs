@@ -32,11 +32,11 @@
 ;; ----------------------------------------------------------------------------
 ;; Setup
 
-(def available-developments (count developments))
+(def num-available-developments (count developments))
 
 (defn select-developments
   []
-  (conj (take available-developments (shuffle developments))
+  (conj (take num-available-developments (shuffle developments))
         (get-only developments :type :settlement)))
 
 (rf/reg-event-db

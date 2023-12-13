@@ -87,7 +87,10 @@
 
 (defn blueprints
   []
-  [:div
+  ; TODO calculate this height based on the board height instead of hardcoding
+  [:div {:style {:height "1000px"
+                 :width "600px"
+                 :overflow "auto"}}
     [:div "Take turns placing developments by clicking on the one you want to "
           "place then clicking on a valid (highlighted) location to place it. "
           "You can cancel by clicking on the development again. "
@@ -103,5 +106,7 @@
                          :grid-template-columns "auto auto"
                          :margin-bottom "100%"
                          :grid-gap "10px"}}]
-          (for [development (sort-by :type @(rf/subscribe [:blueprints]))]
+          (for [development (sort-by (fn [{:keys [not-implemented type]}]
+                                       [not-implemented type ])
+                                     @(rf/subscribe [:blueprints]))]
             (development-blueprint-view development)))])
