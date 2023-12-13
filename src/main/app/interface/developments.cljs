@@ -21,6 +21,12 @@
 (def refined-resources
   [:planks :bread :flour :charcoal])
 
+(def special-resources
+  [:points])
+
+(def resources
+  (concat basic-resources refined-resources special-resources))
+
 ; TODO add:
 ;  - railroad or crossroads that can connect production chain tiles
 ; These are references to development that are not to be copied, just

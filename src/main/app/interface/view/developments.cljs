@@ -3,7 +3,8 @@
             [reagent.core :as r]
             [clojure.string :as st]
             [app.interface.utils :refer [get-only]]
-            [app.interface.developments :refer [developments]]))
+            [app.interface.developments :refer [developments resources]]
+            ["cytoscape" :as cytoscape]))
 
 
 (def dev-desc-hover-state (r/atom {}))
@@ -85,28 +86,111 @@
        nil)]))
 
 
+; Should take a form like
+;   [{:data {:id "a"}}
+;    {:data {:id "b"}}
+;    {:data {:id "c"}}
+;    {:data {:id "d"}}
+;    {:data {:id "e"}}
+;    {:data {:id "ab" :source "a" :target "b"}}
+;    {:data {:id "ad" :source "a" :target "d"}}
+;    {:data {:id "be" :source "b" :target "e"}}
+;    {:data {:id "cb" :source "c" :target "b"}}
+;    {:data {:id "de" :source "d" :target "e"}}))]
+(defn make-development-graph
+  [developments]
+  (prn "devs" developments)
+  (concat
+    ; Development nodes
+    (mapv (fn [{:keys [letter type]}] {:data {:id letter :label type}})
+      developments)
+    ; Edges
+    (reduce concat
+      (mapv (fn [{:keys [production-chains letter]}]
+              (mapv (fn [[k v]]
+                      {:data {:id     (str (name k) letter)
+                              :source (if (> v 0) letter (name k))
+                              :target (if (> v 0) (name k) letter)
+                              :label  (str v)}})
+                production-chains))
+        developments))
+    ; Resource Nodes
+    (mapv (fn [resource]
+            {:data {:id (name resource) :label (name resource)}})
+      resources)))
+  
+
+(defn cytoscape-resource-flow
+  "See inspiration at https://blog.klipse.tech/visualization/2021/02/16/graph-playground-cytoscape.html."
+  [developments]
+  (let [graph-element-id "graph"]
+        ; developments @(rf/subscribe [:blueprints])]
+    (r/create-class
+      {:reagent-render      (fn [_] [:div
+                                     "Cytoscape view:"
+                                     [:div {:id    graph-element-id
+                                            :style {:height "200px"
+                                                    :width  "200px"}}]])
+       ; We use this react lifecycle function because our graph-element-id div
+       ; must exist before we call the cytoscape functionality that populates
+       ; it.
+       :component-did-mount (fn [_]
+                              (cytoscape
+                                (clj->js
+                                  {:style     [{:selector "node"
+                                                :style    {:background-color
+                                                           "#666"
+                                                           :label
+                                                           "data(label)"}}
+                                               {:selector "edge"
+                                                :style    {:width 2
+                                                           :line-color "#ccc"
+                                                           :target-arrow-color
+                                                           "#ccc"
+                                                           :curve-style
+                                                           "bezier"
+                                                           :target-arrow-shape
+                                                           "triangle"
+                                                           :label
+                                                           "data(label)"}}]
+                                   :layout    {:name "circle"}
+                                   :userZoomingEnabled false
+                                   :userPanningEnabled false
+                                   :boxSelectionEnabled false
+                                   :container (js/document.getElementById
+                                                graph-element-id)
+                                   :elements  (make-development-graph
+                                                developments)})))})))
+       
+       
+
+
 (defn blueprints
   []
   ; TODO calculate this height based on the board height instead of hardcoding
-  [:div {:style {:height "1000px"
-                 :width "600px"
-                 :overflow "auto"}}
-    [:div "Take turns placing developments by clicking on the one you want to "
-          "place then clicking on a valid (highlighted) location to place it. "
-          "You can cancel by clicking on the development again. "
-          "Click \"End Turn\" to advance to the next player. "]
-    [:br]
-    [:div "You get 2 points for each adjacent development you have to other "
-          "players."]
-    [:br]
-    [:div "The game ends when all developments are placed "
-          "(note the limit next to each development name)!"]
-    [:br]
-    (into [:div {:style {:display  "grid"
-                         :grid-template-columns "auto auto"
-                         :margin-bottom "100%"
-                         :grid-gap "10px"}}]
-          (for [development (sort-by (fn [{:keys [not-implemented type]}]
-                                       [not-implemented type ])
-                                     @(rf/subscribe [:blueprints]))]
-            (development-blueprint-view development)))])
+  (let [developments (sort-by (fn [{:keys [not-implemented type]}]
+                                [not-implemented type])
+                              @(rf/subscribe [:blueprints]))]
+    [:div {:style {:height "1000px" :width "600px" :overflow "auto"}}
+     [:div
+      "Take turns placing developments by clicking on the one you want to "
+      "place then clicking on a valid (highlighted) location to place it. "
+      "You can cancel by clicking on the development again. "
+      "Click \"End Turn\" to advance to the next player. "]
+     [:br]
+     [:div
+      "You get 2 points for each adjacent development you have to other "
+      "players."]
+     [:br]
+     [:div
+      "The game ends when all developments are placed "
+      "(note the limit next to each development name)!"]
+     [:br]
+     [cytoscape-resource-flow developments]
+     [:br]
+     (into [:div {:style {:display       "grid"
+                          :grid-template-columns "auto auto"
+                          :margin-bottom "100%"
+                          :grid-gap      "10px"}}]
+           (for [development developments]
+             (development-blueprint-view development)))]))
