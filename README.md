@@ -6,6 +6,7 @@ Players take turns placing developments.  The player with the highest score wins
 
 ### Stuff to Add
 
+ - more maps, and random initial settlement/cache placement
  - mess with random development selection ("drafting")
  - make sure developments can "pull" resources even after they are placed (like the port)
  - make monument less good, or more expensive
