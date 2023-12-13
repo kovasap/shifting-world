@@ -99,7 +99,6 @@
 ;    {:data {:id "de" :source "d" :target "e"}}))]
 (defn make-development-graph
   [developments]
-  (prn "devs" developments)
   (concat
     ; Development nodes
     (mapv (fn [{:keys [letter type]}] {:data {:id letter :label type}})
@@ -107,12 +106,14 @@
     ; Edges
     (reduce concat
       (mapv (fn [{:keys [production-chains letter]}]
-              (mapv (fn [[k v]]
-                      {:data {:id     (str (name k) letter)
-                              :source (if (> v 0) letter (name k))
-                              :target (if (> v 0) (name k) letter)
-                              :label  (str v)}})
-                production-chains))
+              (reduce concat
+                      (for [production-chain production-chains]
+                        (mapv (fn [[k v]]
+                                {:data {:id     (str (name k) letter)
+                                        :source (if (> v 0) letter (name k))
+                                        :target (if (> v 0) (name k) letter)
+                                        :label  (str v)}})
+                          production-chain))))
         developments))
     ; Resource Nodes
     (mapv (fn [resource]
@@ -122,55 +123,54 @@
 
 (defn cytoscape-resource-flow
   "See inspiration at https://blog.klipse.tech/visualization/2021/02/16/graph-playground-cytoscape.html."
-  [developments]
+  ; Note that we pass an atom here, not data, so that react will re-render on
+  ; any changes.
+  [developments-atom]
   (let [graph-element-id "graph"]
-        ; developments @(rf/subscribe [:blueprints])]
     (r/create-class
-      {:reagent-render      (fn [_] [:div
-                                     "Cytoscape view:"
-                                     [:div {:id    graph-element-id
-                                            :style {:height "200px"
-                                                    :width  "200px"}}]])
+      {:reagent-render      (fn [_]
+                              ; dummy deref to trigger re-render on change
+                              @developments-atom
+                              [:div
+                               "Cytoscape view:"
+                               [:div {:id    graph-element-id
+                                      :style {:height "200px"
+                                              :width  "200px"}}]])
        ; We use this react lifecycle function because our graph-element-id div
        ; must exist before we call the cytoscape functionality that populates
        ; it.
-       :component-did-mount (fn [_]
-                              (cytoscape
-                                (clj->js
-                                  {:style     [{:selector "node"
-                                                :style    {:background-color
-                                                           "#666"
-                                                           :label
-                                                           "data(label)"}}
-                                               {:selector "edge"
-                                                :style    {:width 2
-                                                           :line-color "#ccc"
-                                                           :target-arrow-color
-                                                           "#ccc"
-                                                           :curve-style
-                                                           "bezier"
-                                                           :target-arrow-shape
-                                                           "triangle"
-                                                           :label
-                                                           "data(label)"}}]
-                                   :layout    {:name "circle"}
-                                   :userZoomingEnabled false
-                                   :userPanningEnabled false
-                                   :boxSelectionEnabled false
-                                   :container (js/document.getElementById
-                                                graph-element-id)
-                                   :elements  (make-development-graph
-                                                developments)})))})))
+       :component-did-update (fn [_]
+                               (cytoscape
+                                 (clj->js
+                                   {:style     [{:selector "node"
+                                                 :style    {:background-color
+                                                            "#666"
+                                                            :label
+                                                            "data(label)"}}
+                                                {:selector "edge"
+                                                 :style    {:width 2
+                                                            :line-color "#ccc"
+                                                            :target-arrow-color
+                                                            "#ccc"
+                                                            :curve-style
+                                                            "bezier"
+                                                            :target-arrow-shape
+                                                            "triangle"
+                                                            :label
+                                                            "data(label)"}}]
+                                    :layout    {:name "circle"}
+                                    :userZoomingEnabled false
+                                    :userPanningEnabled false
+                                    :boxSelectionEnabled false
+                                    :container (js/document.getElementById
+                                                 graph-element-id)
+                                    :elements  (make-development-graph
+                                                 @developments-atom)})))})))
        
-       
-
-
 (defn blueprints
   []
   ; TODO calculate this height based on the board height instead of hardcoding
-  (let [developments (sort-by (fn [{:keys [not-implemented type]}]
-                                [not-implemented type])
-                              @(rf/subscribe [:blueprints]))]
+  (let [developments (rf/subscribe [:blueprints])]
     [:div {:style {:height "1000px" :width "600px" :overflow "auto"}}
      [:div
       "Take turns placing developments by clicking on the one you want to "
@@ -192,5 +192,7 @@
                           :grid-template-columns "auto auto"
                           :margin-bottom "100%"
                           :grid-gap      "10px"}}]
-           (for [development developments]
+           (for [development (sort-by (fn [{:keys [not-implemented type]}]
+                                        [not-implemented type])
+                                      @developments)]
              (development-blueprint-view development)))]))
