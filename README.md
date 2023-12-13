@@ -2,44 +2,37 @@
 
 ## Game Flow
 
-Players take turns placing developments.  The player with the highest score wins!
+Players take turns placing developments.
+The player with the highest score at the end wins!
 
-### Stuff to Add
+## Feelings to Inspire in Players
 
- - more maps, and random initial settlement/cache placement
- - mess with random development selection ("drafting")
- - make sure developments can "pull" resources even after they are placed (like the port)
- - make monument less good, or more expensive
- - scroll developments separately from the board
- - show a flow chart for how developments chain into each other
- - Make it so orders ARE developments that have specific requirements to be
-   placed (like other developments), but the requirements involve a specific
-   player having built something.
- - resources don't accumulate?
-   you just need buildings that build things to meet requirements?
- - roads to transport resources between tiles that can use them?
-   maybe roads are the only way to use someone elses development in your
-   production chain
- - Make it so orders are provided by tiles on the map, and all possible orders
-   are fixed at the start of the game.
- - Make it so that players have no inventory, all resources on tiles they
-   control form their bank.
- - Players can claim tiles (instead of taking resources off them)
- - A tile selection system to use for all selection, use this for the
-   terraformer tile selection.
- - A pretty background
- - Make tax a percent of the resources instead of a flat value.
- - Other players can take resources off your tiles only after they reach a certain stack size (and still pay tax)
- - Add a deck of global effects (weather?) from which a new card is flipped each
-   round.
+ - Each new game should be exciting to start, as you look at the board and try
+   to evaluate the best strategy for that specific board state.
+ - Games should not be too long - players should not feel like they have to keep
+   playing a game for a while that they have already lost.
+
+## Stuff to Add
+
+In order of priority.
+
+1. scroll developments separately from the board
+1. make monument less good, or more expensive
+1. Random map generation that works well given the developments that exist.
+   Every game should feel like a new puzzle to solve.
+1. show a flow chart for how developments chain into each other somewhere
+1. Add a deck of global effects (weather?) from which a set of cards is flipped
+   each game.
    Each card has an effect that changes parameters across the whole game.
-
- - Add ability to redirect resources along production chains by investing
-   resources in a building.
-   the building with the most resources invested will take from buildings first
-   when accumulating at the end of a rounds.
- - Add better logging: https://github.com/ptaoussanis/sente/issues/416
- - Possibly host on glitch.com
+   This could include the old idea of "orders", which make some
+   developments/resources more/less valuable in this game.
+1. Possibly add a "protection" effect when a development is placed that prevents
+   other players from using it's resources for a turn or two so that it's harder
+   for people to steal your resources.
+1. A tile selection system to use for all selection, use this for the
+   terraformer tile selection.
+1. Add better logging: https://github.com/ptaoussanis/sente/issues/416
+1. Possibly host on glitch.com
 
 ## Setup
 
