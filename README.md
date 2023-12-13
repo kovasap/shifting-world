@@ -6,6 +6,7 @@ Players take turns placing developments.  The player with the highest score wins
 
 ### Stuff to Add
 
+ - show a flow chart for how developments chain into each other
  - Make it so orders ARE developments that have specific requirements to be
    placed (like other developments), but the requirements involve a specific
    player having built something.
