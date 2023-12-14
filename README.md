@@ -18,7 +18,10 @@ In order of priority.
 
 1. Random map generation that works well given the developments that exist.
    Every game should feel like a new puzzle to solve.
-1. show a flow chart for how developments chain into each other somewhere.  Start with https://blog.klipse.tech/visualization/2021/02/16/graph-playground-cytoscape.html.
+   I also need to make the teraformer and make developments more strictly tile
+   specific to make this work.
+1. Maybe have clearing a development of all resources trigger something (get
+   points?)
 1. Add a deck of global effects (weather?) from which a set of cards is flipped
    each game.
    Each card has an effect that changes parameters across the whole game.
